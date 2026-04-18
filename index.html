@@ -131,11 +131,15 @@ label { font-size: 13px; color: #aaa; margin-top: 10px; display: block; font-wei
 <script>
 // ⚠️ আপনার ফায়ারবেস API Key বসান
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY", // <--- আপনার API KEY দিন
+  apiKey: "AIzaSyBvEa0kQxqD6qreUGhYwpXFLh9FQpBKtL0",
   authDomain: "love-animation-69d0b.firebaseapp.com",
-  projectId: "love-animation-69d0b"
+  databaseURL: "https://love-animation-69d0b-default-rtdb.firebaseio.com",
+  projectId: "love-animation-69d0b",
+  storageBucket: "love-animation-69d0b.firebasestorage.app",
+  messagingSenderId: "161341842078",
+  appId: "1:161341842078:web:5eaedb0abefa28d307118f",
+  measurementId: "G-D46BQSJBLP"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
