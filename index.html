@@ -4,134 +4,156 @@
 <meta charset="UTF-8">
 <title>Love App</title>
 <style>
-body{margin:0;background:black;color:white;font-family:sans-serif;text-align:center}
-input,button{padding:10px;margin:5px;border-radius:5px;border:none}
-#dashboard{display:none}
-canvas{margin-top:10px}
+body{margin:0;background:black;color:white;font-family:sans-serif}
+#plus{position:fixed;top:10px;right:10px;font-size:30px;cursor:pointer}
+.card{border:1px solid #444;margin:10px;padding:10px;border-radius:10px}
+.menu{float:right;cursor:pointer}
+#modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000c}
+#modalContent{background:#111;padding:20px;margin:50px}
+input{margin:5px;padding:10px;width:90%}
+button{padding:10px;margin:5px}
 </style>
 </head>
 <body>
 
-<h2>Love App 💖</h2>
+<!-- ➕ -->
+<div id="plus" onclick="openModal()">➕</div>
 
-<!-- LOGIN -->
-<div id="login">
-  <button onclick="login()">Login with Gmail</button>
-</div>
+<!-- LIST -->
+<div id="list"></div>
 
-<!-- DASHBOARD -->
-<div id="dashboard">
-  <h3>Create Love Link</h3>
-  <input id="text" placeholder="Write your text"><br>
-  <input type="file" id="image"><br>
-  <input type="file" id="music"><br>
-  <button onclick="createProject()">➕ Create</button>
-  <p id="link"></p>
-  <canvas id="qr"></canvas>
+<!-- MODAL -->
+<div id="modal">
+  <div id="modalContent">
+    <input id="text" placeholder="Write your text"><br>
+    <input type="file" id="image"><br>
+    <input type="file" id="music"><br>
+    <button onclick="create()">Generate QR</button>
+    <button onclick="closeModal()">Close</button>
+  </div>
 </div>
 
 <!-- VIEW -->
 <div id="viewer"></div>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-
-<!-- QR -->
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyBvEa0kQxqD6qreUGhYwpXFLh9FQpBKtL0",
-  authDomain: "love-animation-69d0b.firebaseapp.com",
-  projectId: "love-animation-69d0b"
+const firebaseConfig={
+  apiKey:"AIzaSy...",
+  authDomain:"love-animation-69d0b.firebaseapp.com",
+  projectId:"love-animation-69d0b"
 };
 
 firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+const db=firebase.firestore();
 
-// 🔐 GMAIL LOGIN
-function login(){
-  const provider = new firebase.auth.GoogleAuthProvider();
+let editingId=null;
 
-  firebase.auth().signInWithPopup(provider)
-  .then(result=>{
-    document.getElementById("login").style.display="none";
-    document.getElementById("dashboard").style.display="block";
-  });
+// MODAL
+function openModal(){
+  document.getElementById("modal").style.display="block";
+}
+function closeModal(){
+  document.getElementById("modal").style.display="none";
 }
 
-// ☁️ CLOUDINARY UPLOAD
+// ☁️ UPLOAD
 async function upload(file){
   if(!file) return "";
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("upload_preset", "love_app");
+  const f=new FormData();
+  f.append("file",file);
+  f.append("upload_preset","love_app");
 
-  const res = await fetch("https://api.cloudinary.com/v1_1/love_app/upload",{
-    method:"POST",
-    body:formData
-  });
-
-  const data = await res.json();
-  return data.secure_url;
+  const r=await fetch("https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/upload",{method:"POST",body:f});
+  const d=await r.json();
+  return d.secure_url;
 }
 
-// ➕ CREATE
-async function createProject(){
-  const user = firebase.auth().currentUser;
+// CREATE / EDIT
+async function create(){
+  const text=document.getElementById("text").value;
+  if(!text) return alert("Text must!");
 
-  const text = document.getElementById("text").value;
-  const image = document.getElementById("image").files[0];
-  const music = document.getElementById("music").files[0];
+  const img=await upload(document.getElementById("image").files[0]);
+  const music=await upload(document.getElementById("music").files[0]);
 
-  const imgUrl = await upload(image);
-  const musicUrl = await upload(music);
-
-  const id = Date.now().toString();
+  let id=editingId || Date.now().toString();
 
   await db.collection("projects").doc(id).set({
-    text,
-    imgUrl,
-    musicUrl,
-    user: user.email // 👉 save user email
+    text, img, music
   });
 
-  const link = location.origin + location.pathname + "?id=" + id;
-
-  document.getElementById("link").innerText = link;
-
-  QRCode.toCanvas(document.getElementById("qr"), link);
+  editingId=null;
+  closeModal();
+  load();
 }
 
-// 🔍 VIEW MODE
-const params = new URLSearchParams(location.search);
-const id = params.get("id");
+// LOAD LIST
+async function load(){
+  const list=document.getElementById("list");
+  list.innerHTML="";
+
+  const snap=await db.collection("projects").get();
+
+  snap.forEach(doc=>{
+    const d=doc.data();
+    const id=doc.id;
+    const link=location.origin+location.pathname+"?id="+id;
+
+    const div=document.createElement("div");
+    div.className="card";
+
+    div.innerHTML=`
+      <span class="menu" onclick="menu('${id}','${d.text}')">⋮</span>
+      <b>${d.text}</b><br>
+      <small>${link}</small><br>
+      <canvas id="qr${id}"></canvas>
+    `;
+
+    list.appendChild(div);
+    QRCode.toCanvas(document.getElementById("qr"+id),link);
+  });
+}
+
+// MENU (edit/delete)
+function menu(id,text){
+  const action=prompt("Type: edit / delete");
+
+  if(action=="delete"){
+    db.collection("projects").doc(id).delete().then(load);
+  }
+
+  if(action=="edit"){
+    editingId=id;
+    openModal();
+    document.getElementById("text").value=text;
+  }
+}
+
+// VIEW MODE
+const params=new URLSearchParams(location.search);
+const id=params.get("id");
 
 if(id){
-  document.getElementById("login").style.display="none";
-  document.getElementById("dashboard").style.display="none";
+  document.getElementById("plus").style.display="none";
+  document.getElementById("list").style.display="none";
 
   db.collection("projects").doc(id).get().then(doc=>{
-    const d = doc.data();
+    const d=doc.data();
 
-    document.getElementById("viewer").innerHTML = `
-      <div style="background:url('${d.imgUrl}') center/cover;height:100vh">
+    document.body.innerHTML=`
+      <div style="background:url('${d.img||""}') center/cover;height:100vh;text-align:center">
         <h1 style="padding-top:100px">${d.text}</h1>
-        <audio src="${d.musicUrl}" autoplay loop></audio>
+        <audio src="${d.music||""}" autoplay loop></audio>
       </div>
     `;
   });
+}else{
+  load();
 }
-
-// 🔥 AUTO LOGIN CHECK
-firebase.auth().onAuthStateChanged(user=>{
-  if(user && !id){
-    document.getElementById("login").style.display="none";
-    document.getElementById("dashboard").style.display="block";
-  }
-});
 </script>
 
 </body>
