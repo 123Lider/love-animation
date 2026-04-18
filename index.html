@@ -16,9 +16,7 @@ canvas{margin-top:10px}
 
 <!-- LOGIN -->
 <div id="login">
-  <input id="phone" placeholder="01XXXXXXXXX"><br>
-  <div id="recaptcha"></div>
-  <button onclick="login()">Login</button>
+  <button onclick="login()">Login with Gmail</button>
 </div>
 
 <!-- DASHBOARD -->
@@ -53,17 +51,12 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// 🔐 LOGIN
+// 🔐 GMAIL LOGIN
 function login(){
-  const phone = document.getElementById("phone").value;
-  const appVerifier = new firebase.auth.RecaptchaVerifier('recaptcha');
+  const provider = new firebase.auth.GoogleAuthProvider();
 
-  firebase.auth().signInWithPhoneNumber(phone, appVerifier)
-  .then(confirmResult=>{
-    const code = prompt("OTP dao");
-    return confirmResult.confirm(code);
-  })
-  .then(()=>{
+  firebase.auth().signInWithPopup(provider)
+  .then(result=>{
     document.getElementById("login").style.display="none";
     document.getElementById("dashboard").style.display="block";
   });
@@ -87,6 +80,8 @@ async function upload(file){
 
 // ➕ CREATE
 async function createProject(){
+  const user = firebase.auth().currentUser;
+
   const text = document.getElementById("text").value;
   const image = document.getElementById("image").files[0];
   const music = document.getElementById("music").files[0];
@@ -97,7 +92,10 @@ async function createProject(){
   const id = Date.now().toString();
 
   await db.collection("projects").doc(id).set({
-    text, imgUrl, musicUrl
+    text,
+    imgUrl,
+    musicUrl,
+    user: user.email // 👉 save user email
   });
 
   const link = location.origin + location.pathname + "?id=" + id;
@@ -126,6 +124,14 @@ if(id){
     `;
   });
 }
+
+// 🔥 AUTO LOGIN CHECK
+firebase.auth().onAuthStateChanged(user=>{
+  if(user && !id){
+    document.getElementById("login").style.display="none";
+    document.getElementById("dashboard").style.display="block";
+  }
+});
 </script>
 
 </body>
