@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Love App</title>
+<style>
+body{margin:0;background:black;color:white;font-family:sans-serif;text-align:center}
+input,button{padding:10px;margin:5px;border-radius:5px;border:none}
+#dashboard{display:none}
+canvas{margin-top:10px}
+</style>
+</head>
+<body>
+
+<h2>Love App 💖</h2>
+
+<!-- LOGIN -->
+<div id="login">
+  <input id="phone" placeholder="01XXXXXXXXX"><br>
+  <div id="recaptcha"></div>
+  <button onclick="login()">Login</button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <h3>Create Love Link</h3>
+  <input id="text" placeholder="Write your text"><br>
+  <input type="file" id="image"><br>
+  <input type="file" id="music"><br>
+  <button onclick="createProject()">➕ Create</button>
+  <p id="link"></p>
+  <canvas id="qr"></canvas>
+</div>
+
+<!-- VIEW -->
+<div id="viewer"></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+<!-- QR -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBvEa0kQxqD6qreUGhYwpXFLh9FQpBKtL0",
+  authDomain: "love-animation-69d0b.firebaseapp.com",
+  projectId: "love-animation-69d0b"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// 🔐 LOGIN
+function login(){
+  const phone = document.getElementById("phone").value;
+  const appVerifier = new firebase.auth.RecaptchaVerifier('recaptcha');
+
+  firebase.auth().signInWithPhoneNumber(phone, appVerifier)
+  .then(confirmResult=>{
+    const code = prompt("OTP dao");
+    return confirmResult.confirm(code);
+  })
+  .then(()=>{
+    document.getElementById("login").style.display="none";
+    document.getElementById("dashboard").style.display="block";
+  });
+}
+
+// ☁️ CLOUDINARY UPLOAD
+async function upload(file){
+  if(!file) return "";
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", "love_app");
+
+  const res = await fetch("https://api.cloudinary.com/v1_1/love_app/upload",{
+    method:"POST",
+    body:formData
+  });
+
+  const data = await res.json();
+  return data.secure_url;
+}
+
+// ➕ CREATE
+async function createProject(){
+  const text = document.getElementById("text").value;
+  const image = document.getElementById("image").files[0];
+  const music = document.getElementById("music").files[0];
+
+  const imgUrl = await upload(image);
+  const musicUrl = await upload(music);
+
+  const id = Date.now().toString();
+
+  await db.collection("projects").doc(id).set({
+    text, imgUrl, musicUrl
+  });
+
+  const link = location.origin + location.pathname + "?id=" + id;
+
+  document.getElementById("link").innerText = link;
+
+  QRCode.toCanvas(document.getElementById("qr"), link);
+}
+
+// 🔍 VIEW MODE
+const params = new URLSearchParams(location.search);
+const id = params.get("id");
+
+if(id){
+  document.getElementById("login").style.display="none";
+  document.getElementById("dashboard").style.display="none";
+
+  db.collection("projects").doc(id).get().then(doc=>{
+    const d = doc.data();
+
+    document.getElementById("viewer").innerHTML = `
+      <div style="background:url('${d.imgUrl}') center/cover;height:100vh">
+        <h1 style="padding-top:100px">${d.text}</h1>
+        <audio src="${d.musicUrl}" autoplay loop></audio>
+      </div>
+    `;
+  });
+}
+</script>
+
+</body>
+</html>
