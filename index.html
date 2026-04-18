@@ -1,79 +1,140 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Love 3D App</title>
+<title>💖 Love 3D App</title>
 <style>
-body{margin:0;background:black;color:white;font-family:sans-serif; overflow: hidden;}
-#plus{position:fixed;top:10px;right:10px;font-size:30px;cursor:pointer; z-index: 100;}
-#authBox{position:fixed;top:10px;left:10px;z-index:100; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 5px;}
-.card{border:1px solid #444;margin:10px;padding:10px;border-radius:10px; background: #111; word-wrap: break-word;}
-.menu{float:right;cursor:pointer; font-size: 20px;}
-#modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000c; z-index: 200; overflow-y: auto;}
-#modalContent{background:#111;padding:20px;margin:20px auto; max-width: 400px; border-radius: 10px;}
-input{margin:5px 0;padding:10px;width:90%; box-sizing: border-box; background: #222; color: white; border: 1px solid #555;}
-button{padding:10px;margin:5px 0; cursor: pointer; background: #4caf50; color: white; border: none; border-radius: 5px;}
-.remove-btn {background: #f44336;}
-#list {height: 100vh; overflow-y: auto; padding-top: 50px;}
-canvas {background: white; padding: 5px; border-radius: 5px; margin-top: 10px;}
+/* --- APP THEME & GLOBAL STYLES --- */
+:root {
+    --primary: #ff3366;
+    --dark: #0f0f15;
+    --glass: rgba(255, 255, 255, 0.05);
+    --border: rgba(255, 255, 255, 0.1);
+}
+body { margin: 0; background: var(--dark); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
+
+/* --- LOGIN PAGE UI --- */
+#loginPage {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100vh;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    background: radial-gradient(circle at top, #2b101c, #0f0f15); z-index: 1000;
+}
+.logo-icon { font-size: 60px; animation: heartbeat 1.5s infinite; text-shadow: 0 0 20px #ff3366; }
+@keyframes heartbeat { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+#loginPage h1 { margin: 10px 0; font-size: 32px; letter-spacing: 2px; }
+#loginPage p { color: #aaa; margin-bottom: 30px; }
+.login-btn {
+    background: white; color: black; border: none; padding: 15px 30px; font-size: 16px;
+    border-radius: 30px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: 0.3s;
+}
+.login-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(255,51,102,0.4); }
+
+/* --- MAIN APP NAV & LIST --- */
+#appHeader {
+    display: none; justify-content: space-between; align-items: center;
+    padding: 15px 20px; background: rgba(0,0,0,0.8); border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(10px); position: fixed; width: 100%; top: 0; box-sizing: border-box; z-index: 100;
+}
+#userInfo { display: flex; align-items: center; gap: 10px; }
+.logout-btn { background: transparent; color: #ff4d4d; border: 1px solid #ff4d4d; padding: 5px 15px; border-radius: 20px; cursor: pointer; }
+#plus { font-size: 28px; cursor: pointer; color: var(--primary); text-shadow: 0 0 10px var(--primary); }
+
+#list { height: 100vh; overflow-y: auto; padding: 80px 10px 20px; display: none; box-sizing: border-box; }
+.card {
+    background: var(--glass); border: 1px solid var(--border); margin: 15px auto; padding: 15px;
+    border-radius: 15px; max-width: 400px; backdrop-filter: blur(10px); display: flex; flex-direction: column; align-items: center;
+}
+.card-header { width: 100%; display: flex; justify-content: space-between; margin-bottom: 10px; }
+.menu { cursor: pointer; font-size: 20px; color: #aaa; }
+.qr-box { margin-top: 15px; background: white; padding: 5px; border-radius: 10px; display: inline-block; }
+
+/* --- MODAL (CREATE NEW) --- */
+#modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 200; overflow-y: auto; backdrop-filter: blur(5px); }
+#modalContent { background: #1a1a24; padding: 25px; margin: 30px auto; max-width: 350px; border-radius: 20px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+input, select { width: 100%; padding: 12px; margin: 8px 0; box-sizing: border-box; background: #000; color: white; border: 1px solid #333; border-radius: 8px; }
+button.action-btn { width: 100%; padding: 12px; margin: 10px 0; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
+button.close-btn { background: #444; }
+label { font-size: 13px; color: #aaa; margin-top: 5px; display: block; }
+
+/* Viewer Mode */
+#viewer { position: absolute; top:0; left:0; width:100%; height:100%; display:none; }
 </style>
 </head>
 <body>
 
-<!-- Authentication UI -->
-<div id="authBox">
-    <button id="loginBtn" onclick="login()">Login with Google</button>
-    <div id="userInfo" style="display:none;">
-        <span id="userName" style="margin-right: 10px; font-weight: bold;"></span>
-        <button class="remove-btn" onclick="logout()">Logout</button>
+<!-- 1. BEAUTIFUL LOGIN PAGE -->
+<div id="loginPage">
+    <div class="logo-icon">💖</div>
+    <h1>Love 3D</h1>
+    <p>Bring your feelings to life with 3D</p>
+    <button class="login-btn" onclick="login()">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20" alt="G">
+        Continue with Google
+    </button>
+</div>
+
+<!-- 2. APP HEADER -->
+<div id="appHeader">
+    <div id="userInfo">
+        <span id="userName" style="font-weight: bold;">User</span>
+        <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
+    <div id="plus" onclick="openModal()">➕ Create</div>
 </div>
 
-<div id="plus" onclick="openModal()" style="display:none;">➕</div>
-<div id="list">
-    <p style="text-align:center; margin-top:50px;">Please login to see your projects.</p>
-</div>
+<!-- 3. PROJECT LIST -->
+<div id="list"></div>
 
-<!-- Modal -->
+<!-- 4. CREATION MODAL -->
 <div id="modal">
   <div id="modalContent">
-    <h3>Create 3D Animation</h3>
-    <input id="text1" placeholder="Write text 1 (Must)"><br>
-    <input id="text2" placeholder="Write text 2 (Optional)"><br>
-    <input id="text3" placeholder="Write text 3 (Optional)"><br>
+    <h3 style="text-align: center; margin-top: 0;">✨ Create Animation</h3>
     
-    <label>Background Image:</label><br>
+    <label>Animated Texts (Max 3):</label>
+    <input id="text1" placeholder="Text 1 (Required)">
+    <input id="text2" placeholder="Text 2 (Optional)">
+    <input id="text3" placeholder="Text 3 (Optional)">
+    
+    <label>Choose QR Code Style:</label>
+    <select id="qrStyle">
+        <option value="style1">Classic Square (Default)</option>
+        <option value="style2">Romantic Red (Dots & Rounded)</option>
+        <option value="style3">Neon Pink (Dark Background)</option>
+    </select>
+
+    <label>Background Image (Optional):</label>
     <input type="file" id="image">
-    <button class="remove-btn" onclick="removeImage()">Remove Image</button><br>
 
-    <label>Background Music:</label><br>
+    <label>Background Music (Optional):</label>
     <input type="file" id="music">
-    <button class="remove-btn" onclick="removeMusic()">Remove Music</button><br>
 
-    <button onclick="create()" style="width: 100%;">Generate QR & Link</button>
-    <button onclick="closeModal()" style="width: 100%; background: #555;">Close</button>
+    <button class="action-btn" onclick="create()">🚀 Generate 3D & QR</button>
+    <button class="action-btn close-btn" onclick="closeModal()">Cancel</button>
   </div>
 </div>
 
 <div id="viewer"></div>
 
-<!-- Firebase Scripts (Compat Version for v9) -->
+<!-- FIREBASE (v9 Compat) -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
+<!-- QR CODE STYLING LIBRARY (Advanced QR) -->
+<script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
 
 <!-- THREE JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/controls/OrbitControls.js"></script>
 
 <script>
-// ১. আপনার ফায়ারবেস কনফিগারেশন দিন
-const firebaseConfig={
-  apiKey:"AIzaSy...", // আপনার API key দিন
-  authDomain:"love-animation-69d0b.firebaseapp.com",
-  projectId:"love-animation-69d0b"
+// ⚠️ এখানে আপনার আসল ফায়ারবেস কনফিগারেশন বসান
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY", // <--- অবশ্যই আপনার API KEY দিন
+  authDomain: "love-animation-69d0b.firebaseapp.com",
+  projectId: "love-animation-69d0b"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -83,243 +144,212 @@ const provider = new firebase.auth.GoogleAuthProvider();
 
 let currentUser = null;
 let editingId = null;
-let removeImg = false;
-let removeMus = false;
 
-// URL Check
 const params = new URLSearchParams(location.search);
 const viewId = params.get("id");
 
-// ২. Authentication Logic
+// AUTHENTICATION LOGIC
 auth.onAuthStateChanged(user => {
     currentUser = user;
+    if(viewId) return; // ভিউয়ার মোডে থাকলে লগইন স্ক্রিন দেখানোর দরকার নেই
+
     if(user) {
-        // User logged in
-        document.getElementById('loginBtn').style.display = 'none';
-        document.getElementById('userInfo').style.display = 'inline-block';
-        document.getElementById('userName').innerText = user.displayName;
-        document.getElementById('plus').style.display = 'block';
-        
-        if(!viewId) load(); // শুধু এডিটর মোডে থাকলে লিস্ট লোড হবে
+        // Logged In
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('appHeader').style.display = 'flex';
+        document.getElementById('list').style.display = 'block';
+        document.getElementById('userName').innerText = user.displayName.split(" ")[0]; // শুধু ফার্স্ট নেম
+        load();
     } else {
-        // User logged out
-        document.getElementById('loginBtn').style.display = 'block';
-        document.getElementById('userInfo').style.display = 'none';
-        document.getElementById('plus').style.display = 'none';
-        
-        if(!viewId) {
-            document.getElementById("list").innerHTML = "<p style='text-align:center; margin-top:50px;'>Please login to see your projects.</p>";
-        }
+        // Logged Out
+        document.getElementById('loginPage').style.display = 'flex';
+        document.getElementById('appHeader').style.display = 'none';
+        document.getElementById('list').style.display = 'none';
     }
 });
 
-function login() { auth.signInWithPopup(provider); }
+function login() { 
+    auth.signInWithPopup(provider).catch(error => {
+        alert("Login failed! Please check if Google Sign-in is enabled in Firebase.\nError: " + error.message);
+    }); 
+}
 function logout() { auth.signOut(); }
 
-// MODAL
-function openModal(){
-  document.getElementById("modal").style.display="block";
-}
-function closeModal(){
-  document.getElementById("modal").style.display="none";
-  // Reset inputs
-  document.getElementById("text1").value = "";
-  document.getElementById("text2").value = "";
-  document.getElementById("text3").value = "";
-  editingId = null;
+// MODAL CONTROLS
+function openModal() { document.getElementById("modal").style.display = "block"; }
+function closeModal() { 
+    document.getElementById("modal").style.display = "none";
+    document.getElementById("text1").value = "";
+    document.getElementById("text2").value = "";
+    document.getElementById("text3").value = "";
+    editingId = null;
 }
 
-function removeImage(){ removeImg=true; alert("Image removed"); }
-function removeMusic(){ removeMus=true; alert("Music removed"); }
-
-// UPLOAD (Cloudinary)
+// UPLOAD TO CLOUDINARY
 async function upload(file){
   if(!file) return "";
   const f=new FormData();
   f.append("file",file);
-  f.append("upload_preset","love_app"); // আপনার Cloudinary preset দিন
+  f.append("upload_preset","love_app"); // আপনার Cloudinary preset
 
-  // YOUR_CLOUD_NAME পরিবর্তন করে নিজেরটা দিন
   const r=await fetch("https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/upload",{method:"POST",body:f});
   const d=await r.json();
   return d.secure_url;
 }
 
-// CREATE / EDIT
+// CREATE / EDIT DATA
 async function create(){
-  if(!currentUser) return alert("Please login first!");
-
   const t1 = document.getElementById("text1").value;
   const t2 = document.getElementById("text2").value;
   const t3 = document.getElementById("text3").value;
+  const qrStyle = document.getElementById("qrStyle").value; // Get QR Style
 
   if(!t1) return alert("Text 1 is required!");
 
-  // ৩টা টেক্সট নিয়ে একটা Array বানাচ্ছি, ফাঁকাগুলো বাদ দিয়ে দিচ্ছি
   const textsArray = [t1, t2, t3].filter(t => t && t.trim() !== "");
+  document.getElementById("modalContent").style.opacity = "0.5"; 
 
-  document.getElementById("modalContent").style.opacity = "0.5"; // Loading effect
-
-  let img = removeImg ? "" : await upload(document.getElementById("image").files[0]);
-  let music = removeMus ? "" : await upload(document.getElementById("music").files[0]);
+  let img = await upload(document.getElementById("image").files[0]);
+  let music = await upload(document.getElementById("music").files[0]);
 
   let id = editingId || Date.now().toString();
 
-  let dataToSave = {
-    texts: textsArray, // এখন ৩টা টেক্সট array হিসেবে সেভ হচ্ছে
-    userId: currentUser.uid // ইউজারের ID সেভ করে রাখছি
-  };
-
-  // যদি নতুন ইমেজ বা মিউজিক দেয় বা রিমুভ করে
-  if(document.getElementById("image").files[0] || removeImg) dataToSave.img = img;
-  if(document.getElementById("music").files[0] || removeMus) dataToSave.music = music;
+  let dataToSave = { texts: textsArray, userId: currentUser.uid, qrStyle: qrStyle };
+  if(img) dataToSave.img = img;
+  if(music) dataToSave.music = music;
 
   await db.collection("projects").doc(id).set(dataToSave, { merge: true });
 
   document.getElementById("modalContent").style.opacity = "1";
-  editingId=null;
-  removeImg=false;
-  removeMus=false;
-
   closeModal();
   load();
 }
 
-// LOAD LIST
+// LOAD LIST & RENDER STYLED QR CODES
 async function load(){
-  if(!currentUser) return;
-  const list=document.getElementById("list");
-  list.innerHTML="";
-
-  // শুধু লগইন করা ইউজারের ডেটাগুলো আনছি
+  const list = document.getElementById("list");
+  list.innerHTML = "";
   const snap = await db.collection("projects").where("userId", "==", currentUser.uid).get();
 
   if(snap.empty) {
-      list.innerHTML = "<p style='text-align:center;'>No projects found. Click ➕ to create.</p>";
+      list.innerHTML = "<p style='text-align:center; color:#888; margin-top:50px;'>No magic created yet.<br>Click '➕ Create' to start.</p>";
       return;
   }
 
-  snap.forEach(doc=>{
-    const d=doc.data();
-    const id=doc.id;
-    const link=location.origin+location.pathname+"?id="+id;
-
-    // পুরনো ডেটা (text) এবং নতুন ডেটা (texts array) হ্যান্ডেল করা
-    const displayTexts = d.texts ? d.texts.join(" | ") : d.text;
-    const safeTexts = d.texts ? JSON.stringify(d.texts).replace(/"/g, '&quot;') : `["${d.text}"]`;
-
-    const div=document.createElement("div");
-    div.className="card";
-
-    div.innerHTML=`
-      <span class="menu" onclick="menu('${id}', ${safeTexts})">⋮</span>
-      <b>${displayTexts}</b><br>
-      <small style="color:#aaa;">${link}</small><br>
-      <canvas id="qr${id}"></canvas>
+  snap.forEach(doc => {
+    const d = doc.data();
+    const id = doc.id;
+    const link = location.origin + location.pathname + "?id=" + id;
+    const displayTexts = d.texts ? d.texts.join(" • ") : d.text;
+    
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `
+      <div class="card-header">
+         <b>${displayTexts}</b>
+         <span class="menu" onclick="menu('${id}')">🗑️/✏️</span>
+      </div>
+      <div class="qr-box" id="qr-${id}"></div>
+      <small style="margin-top:10px; color:#aaa;">${link}</small>
     `;
-
     list.appendChild(div);
-    QRCode.toCanvas(document.getElementById("qr"+id),link, {width: 120});
-  });
-}
 
-// MENU
-function menu(id, textsArr){
-  const action=prompt("Type 'edit' to edit or 'delete' to delete:");
+    // 🎨 CUSTOM QR CODE LOGIC
+    let qrOptions = {
+        width: 150, height: 150, data: link,
+        image: "https://cdn-icons-png.flaticon.com/512/833/833472.png", // Heart logo in center
+        imageOptions: { crossOrigin: "anonymous", margin: 5 }
+    };
 
-  if(action=="delete"){
-    if(confirm("Are you sure?")) {
-        db.collection("projects").doc(id).delete().then(load);
-    }
-  }
-
-  if(action=="edit"){
-    editingId=id;
-    openModal();
-    // ৩টা বক্সে পুরনো টেক্সট বসিয়ে দিচ্ছি
-    if(textsArr[0]) document.getElementById("text1").value = textsArr[0];
-    if(textsArr[1]) document.getElementById("text2").value = textsArr[1];
-    if(textsArr[2]) document.getElementById("text3").value = textsArr[2];
-  }
-}
-
-// VIEW MODE (3D)
-if(viewId){
-  // Viewer Mode - লগইন ছাড়া সবাই দেখতে পারবে
-  document.getElementById("authBox").style.display="none";
-  document.getElementById("plus").style.display="none";
-  document.getElementById("list").style.display="none";
-
-  db.collection("projects").doc(viewId).get().then(doc=>{
-    if(doc.exists) {
-        const d=doc.data();
-        // ৩টা টেক্সটের array পাস করছি
-        const textsToPlay = d.texts ? d.texts : [d.text];
-        start3D(textsToPlay, d.img, d.music);
+    if(d.qrStyle === "style2") {
+        // Romantic Red
+        qrOptions.dotsOptions = { color: "#e60000", type: "rounded" };
+        qrOptions.cornersSquareOptions = { color: "#990000", type: "extra-rounded" };
+    } else if(d.qrStyle === "style3") {
+        // Neon Pink
+        qrOptions.backgroundOptions = { color: "#111" };
+        qrOptions.dotsOptions = { color: "#ff33cc", type: "dots" };
+        qrOptions.cornersSquareOptions = { color: "#ff0066", type: "dot" };
     } else {
-        alert("Animation not found!");
+        // Classic Default
+        qrOptions.dotsOptions = { color: "#000", type: "square" };
+        qrOptions.image = ""; // No image for classic
+    }
+
+    const qrCode = new QRCodeStyling(qrOptions);
+    qrCode.append(document.getElementById(`qr-${id}`));
+  });
+}
+
+function menu(id){
+  const action = prompt("Type 'edit' to edit or 'delete' to remove:");
+  if(action === "delete"){
+      if(confirm("Delete this magic?")) db.collection("projects").doc(id).delete().then(load);
+  } else if(action === "edit"){
+      editingId = id;
+      openModal();
+  }
+}
+
+// 🎥 START 3D VIEWER (IF LINK HAS ID)
+if(viewId){
+  document.getElementById("loginPage").style.display = "none";
+  document.body.style.overflow = "hidden";
+  document.getElementById("viewer").style.display = "block";
+
+  db.collection("projects").doc(viewId).get().then(doc => {
+    if(doc.exists) {
+        const d = doc.data();
+        start3D(d.texts || [d.text], d.img, d.music);
+    } else {
+        alert("Animation not found or deleted!");
     }
   });
 }
 
-// 🎥 3D FUNCTION
 function start3D(textArray, bg, music){
   if(music){
-    const audio=document.createElement("audio");
-    audio.src=music;
-    audio.autoplay=true;
-    audio.loop=true;
-    // User interaction required for audio in modern browsers
-    document.body.addEventListener('click', () => { audio.play(); }, {once:true});
-    document.body.appendChild(audio);
+    const audio = document.createElement("audio");
+    audio.src = music;
+    audio.loop = true;
+    // Play on first touch/click
+    document.body.addEventListener('click', () => audio.play(), {once:true});
   }
 
-  const scene=new THREE.Scene();
-
+  const scene = new THREE.Scene();
   if(bg){
-    const loader=new THREE.TextureLoader();
-    loader.load(bg, tex=>{
-      scene.background=tex;
-    });
+    new THREE.TextureLoader().load(bg, tex => { scene.background = tex; });
+  } else {
+      scene.background = new THREE.Color(0x0f0f15); // Dark background fallback
   }
 
-  const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,0.1,1000);
-  camera.position.set(-15,5,20);
+  const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
+  camera.position.set(-15, 5, 20);
 
-  const renderer=new THREE.WebGLRenderer({antialias:true});
-  renderer.setSize(innerWidth,innerHeight);
-  document.body.appendChild(renderer.domElement);
+  const renderer = new THREE.WebGLRenderer({antialias:true});
+  renderer.setSize(innerWidth, innerHeight);
+  document.getElementById("viewer").appendChild(renderer.domElement);
 
-  const controls=new THREE.OrbitControls(camera,renderer.domElement);
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-  const light=new THREE.PointLight(0xffffff,1);
-  light.position.set(10,10,10);
+  const light = new THREE.PointLight(0xffffff, 1.5);
+  light.position.set(10, 20, 10);
   scene.add(light);
+  scene.add(new THREE.AmbientLight(0x404040));
 
-  const loaderF=new THREE.FontLoader();
+  const loaderF = new THREE.FontLoader();
+  let texts = [];
 
-  let texts=[];
-
-  loaderF.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', font=>{
-    for(let i=0;i<80;i++){
-      // Array থেকে রেন্ডম একটি টেক্সট পিক করা হচ্ছে
+  loaderF.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', font => {
+    for(let i=0; i<80; i++){
       const randomText = textArray[Math.floor(Math.random() * textArray.length)];
+      const geo = new THREE.TextGeometry(randomText, { font: font, size: Math.random()*0.4+0.3, height: 0.05 });
+      
+      const colors = [0xff3366, 0xff99cc, 0xffffff, 0xffcc00];
+      const mat = new THREE.MeshLambertMaterial({color: colors[Math.floor(Math.random() * colors.length)]});
+      const mesh = new THREE.Mesh(geo, mat);
 
-      const geo=new THREE.TextGeometry(randomText,{
-        font:font,
-        size:Math.random()*0.4+0.3,
-        height:0.02
-      });
-
-      const colors = [0xff66cc, 0x66ccff, 0xffcc66, 0xffffff];
-      const randomColor = colors[Math.floor(Math.random() * colors.length)];
-      const mat=new THREE.MeshBasicMaterial({color: randomColor});
-      const mesh=new THREE.Mesh(geo,mat);
-
-      mesh.position.x=(Math.random()-0.5)*40;
-      mesh.position.y=Math.random()*20;
-      mesh.position.z=(Math.random()-0.5)*40;
-
+      mesh.position.set((Math.random()-0.5)*40, Math.random()*20, (Math.random()-0.5)*40);
       scene.add(mesh);
       texts.push(mesh);
     }
@@ -327,12 +357,13 @@ function start3D(textArray, bg, music){
 
   function animate(){
     requestAnimationFrame(animate);
-    texts.forEach(t=>{
-      t.position.y-=0.04;
-      if(t.position.y<-15) t.position.y=15;
+    texts.forEach(t => {
+      t.position.y -= 0.05;
+      t.rotation.y += 0.01;
+      if(t.position.y < -15) t.position.y = 15;
     });
     controls.update();
-    renderer.render(scene,camera);
+    renderer.render(scene, camera);
   }
   animate();
 }
