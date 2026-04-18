@@ -6,46 +6,26 @@
 <title>💖 Love 3D App</title>
 <style>
 /* --- APP THEME & GLOBAL STYLES --- */
-:root {
-    --primary: #ff3366;
-    --dark: #0f0f15;
-    --glass: rgba(255, 255, 255, 0.05);
-    --border: rgba(255, 255, 255, 0.1);
-}
+:root { --primary: #ff3366; --dark: #0f0f15; --glass: rgba(255, 255, 255, 0.05); --border: rgba(255, 255, 255, 0.1); }
 body { margin: 0; background: var(--dark); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
 
 /* --- LOGIN PAGE UI --- */
-#loginPage {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100vh;
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
-    background: radial-gradient(circle at top, #2b101c, #0f0f15); z-index: 1000;
-}
+#loginPage { position: absolute; top: 0; left: 0; width: 100%; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: radial-gradient(circle at top, #2b101c, #0f0f15); z-index: 1000; }
 .logo-icon { font-size: 60px; animation: heartbeat 1.5s infinite; text-shadow: 0 0 20px #ff3366; }
 @keyframes heartbeat { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 #loginPage h1 { margin: 10px 0; font-size: 32px; letter-spacing: 2px; }
-#loginPage p { color: #aaa; margin-bottom: 30px; }
-.login-btn {
-    background: white; color: black; border: none; padding: 15px 30px; font-size: 16px;
-    border-radius: 30px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: 0.3s;
-}
+#loginPage p { color: #aaa; margin-bottom: 30px; text-align: center; }
+.login-btn { background: white; color: black; border: none; padding: 15px 30px; font-size: 16px; border-radius: 30px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: 0.3s; }
 .login-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(255,51,102,0.4); }
 
 /* --- MAIN APP NAV & LIST --- */
-#appHeader {
-    display: none; justify-content: space-between; align-items: center;
-    padding: 15px 20px; background: rgba(0,0,0,0.8); border-bottom: 1px solid var(--border);
-    backdrop-filter: blur(10px); position: fixed; width: 100%; top: 0; box-sizing: border-box; z-index: 100;
-}
+#appHeader { display: none; justify-content: space-between; align-items: center; padding: 15px 20px; background: rgba(0,0,0,0.8); border-bottom: 1px solid var(--border); backdrop-filter: blur(10px); position: fixed; width: 100%; top: 0; box-sizing: border-box; z-index: 100; }
 #userInfo { display: flex; align-items: center; gap: 10px; }
 .logout-btn { background: transparent; color: #ff4d4d; border: 1px solid #ff4d4d; padding: 5px 15px; border-radius: 20px; cursor: pointer; }
 #plus { font-size: 28px; cursor: pointer; color: var(--primary); text-shadow: 0 0 10px var(--primary); }
 
 #list { height: 100vh; overflow-y: auto; padding: 80px 10px 20px; display: none; box-sizing: border-box; }
-.card {
-    background: var(--glass); border: 1px solid var(--border); margin: 15px auto; padding: 15px;
-    border-radius: 15px; max-width: 400px; backdrop-filter: blur(10px); display: flex; flex-direction: column; align-items: center;
-}
+.card { background: var(--glass); border: 1px solid var(--border); margin: 15px auto; padding: 15px; border-radius: 15px; max-width: 400px; backdrop-filter: blur(10px); display: flex; flex-direction: column; align-items: center; }
 .card-header { width: 100%; display: flex; justify-content: space-between; margin-bottom: 10px; }
 .menu { cursor: pointer; font-size: 20px; color: #aaa; }
 .qr-box { margin-top: 15px; background: white; padding: 5px; border-radius: 10px; display: inline-block; }
@@ -69,7 +49,7 @@ label { font-size: 13px; color: #aaa; margin-top: 5px; display: block; }
     <div class="logo-icon">💖</div>
     <h1>Love 3D</h1>
     <p>Bring your feelings to life with 3D</p>
-    <button class="login-btn" onclick="login()">
+    <button class="login-btn" id="loginBtn" onclick="login()">
         <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20" alt="G">
         Continue with Google
     </button>
@@ -122,19 +102,23 @@ label { font-size: 13px; color: #aaa; margin-top: 5px; display: block; }
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
-<!-- QR CODE STYLING LIBRARY (Advanced QR) -->
+<!-- QR CODE STYLING LIBRARY -->
 <script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
-
 <!-- THREE JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/controls/OrbitControls.js"></script>
 
 <script>
-// ⚠️ এখানে আপনার আসল ফায়ারবেস কনফিগারেশন বসান
+// ⚠️ আপনার ফায়ারবেস API Key ঠিকমতো বসাতে ভুলবেন না
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY", // <--- অবশ্যই আপনার API KEY দিন
+  apiKey: "AIzaSyBvEa0kQxqD6qreUGhYwpXFLh9FQpBKtL0",
   authDomain: "love-animation-69d0b.firebaseapp.com",
-  projectId: "love-animation-69d0b"
+  databaseURL: "https://love-animation-69d0b-default-rtdb.firebaseio.com",
+  projectId: "love-animation-69d0b",
+  storageBucket: "love-animation-69d0b.firebasestorage.app",
+  messagingSenderId: "161341842078",
+  appId: "1:161341842078:web:5eaedb0abefa28d307118f",
+  measurementId: "G-D46BQSJBLP"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -148,34 +132,38 @@ let editingId = null;
 const params = new URLSearchParams(location.search);
 const viewId = params.get("id");
 
-// AUTHENTICATION LOGIC
+// ১. Check Redirect Error (লগইন করে ফিরে আসার পর যদি কোনো এরর হয়)
+auth.getRedirectResult().catch(error => {
+    alert("Login failed! Error: " + error.message);
+    document.getElementById('loginBtn').innerHTML = "Continue with Google";
+});
+
+// ২. Check Auth State
 auth.onAuthStateChanged(user => {
     currentUser = user;
-    if(viewId) return; // ভিউয়ার মোডে থাকলে লগইন স্ক্রিন দেখানোর দরকার নেই
+    if(viewId) return; 
 
     if(user) {
-        // Logged In
         document.getElementById('loginPage').style.display = 'none';
         document.getElementById('appHeader').style.display = 'flex';
         document.getElementById('list').style.display = 'block';
-        document.getElementById('userName').innerText = user.displayName.split(" ")[0]; // শুধু ফার্স্ট নেম
+        document.getElementById('userName').innerText = user.displayName.split(" ")[0];
         load();
     } else {
-        // Logged Out
         document.getElementById('loginPage').style.display = 'flex';
         document.getElementById('appHeader').style.display = 'none';
         document.getElementById('list').style.display = 'none';
     }
 });
 
+// ৩. REDIRECT LOGIN FUNCTION (নতুন পদ্ধতি)
 function login() { 
-    auth.signInWithPopup(provider).catch(error => {
-        alert("Login failed! Please check if Google Sign-in is enabled in Firebase.\nError: " + error.message);
-    }); 
+    document.getElementById('loginBtn').innerHTML = "⏳ Please Wait...";
+    auth.signInWithRedirect(provider); // Popup এর বদলে Redirect
 }
+
 function logout() { auth.signOut(); }
 
-// MODAL CONTROLS
 function openModal() { document.getElementById("modal").style.display = "block"; }
 function closeModal() { 
     document.getElementById("modal").style.display = "none";
@@ -185,24 +173,21 @@ function closeModal() {
     editingId = null;
 }
 
-// UPLOAD TO CLOUDINARY
 async function upload(file){
   if(!file) return "";
-  const f=new FormData();
+  const f = new FormData();
   f.append("file",file);
-  f.append("upload_preset","love_app"); // আপনার Cloudinary preset
-
-  const r=await fetch("https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/upload",{method:"POST",body:f});
-  const d=await r.json();
+  f.append("upload_preset","love_app"); // Cloudinary preset
+  const r = await fetch("https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/upload",{method:"POST",body:f});
+  const d = await r.json();
   return d.secure_url;
 }
 
-// CREATE / EDIT DATA
 async function create(){
   const t1 = document.getElementById("text1").value;
   const t2 = document.getElementById("text2").value;
   const t3 = document.getElementById("text3").value;
-  const qrStyle = document.getElementById("qrStyle").value; // Get QR Style
+  const qrStyle = document.getElementById("qrStyle").value;
 
   if(!t1) return alert("Text 1 is required!");
 
@@ -225,7 +210,6 @@ async function create(){
   load();
 }
 
-// LOAD LIST & RENDER STYLED QR CODES
 async function load(){
   const list = document.getElementById("list");
   list.innerHTML = "";
@@ -250,30 +234,21 @@ async function load(){
          <span class="menu" onclick="menu('${id}')">🗑️/✏️</span>
       </div>
       <div class="qr-box" id="qr-${id}"></div>
-      <small style="margin-top:10px; color:#aaa;">${link}</small>
+      <small style="margin-top:10px; color:#aaa; display:block; word-wrap:break-word;">${link}</small>
     `;
     list.appendChild(div);
 
-    // 🎨 CUSTOM QR CODE LOGIC
-    let qrOptions = {
-        width: 150, height: 150, data: link,
-        image: "https://cdn-icons-png.flaticon.com/512/833/833472.png", // Heart logo in center
-        imageOptions: { crossOrigin: "anonymous", margin: 5 }
-    };
-
+    let qrOptions = { width: 150, height: 150, data: link, image: "https://cdn-icons-png.flaticon.com/512/833/833472.png", imageOptions: { crossOrigin: "anonymous", margin: 5 } };
     if(d.qrStyle === "style2") {
-        // Romantic Red
         qrOptions.dotsOptions = { color: "#e60000", type: "rounded" };
         qrOptions.cornersSquareOptions = { color: "#990000", type: "extra-rounded" };
     } else if(d.qrStyle === "style3") {
-        // Neon Pink
         qrOptions.backgroundOptions = { color: "#111" };
         qrOptions.dotsOptions = { color: "#ff33cc", type: "dots" };
         qrOptions.cornersSquareOptions = { color: "#ff0066", type: "dot" };
     } else {
-        // Classic Default
         qrOptions.dotsOptions = { color: "#000", type: "square" };
-        qrOptions.image = ""; // No image for classic
+        qrOptions.image = ""; 
     }
 
     const qrCode = new QRCodeStyling(qrOptions);
@@ -291,7 +266,6 @@ function menu(id){
   }
 }
 
-// 🎥 START 3D VIEWER (IF LINK HAS ID)
 if(viewId){
   document.getElementById("loginPage").style.display = "none";
   document.body.style.overflow = "hidden";
@@ -312,7 +286,6 @@ function start3D(textArray, bg, music){
     const audio = document.createElement("audio");
     audio.src = music;
     audio.loop = true;
-    // Play on first touch/click
     document.body.addEventListener('click', () => audio.play(), {once:true});
   }
 
@@ -320,7 +293,7 @@ function start3D(textArray, bg, music){
   if(bg){
     new THREE.TextureLoader().load(bg, tex => { scene.background = tex; });
   } else {
-      scene.background = new THREE.Color(0x0f0f15); // Dark background fallback
+      scene.background = new THREE.Color(0x0f0f15); 
   }
 
   const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
@@ -331,7 +304,6 @@ function start3D(textArray, bg, music){
   document.getElementById("viewer").appendChild(renderer.domElement);
 
   const controls = new THREE.OrbitControls(camera, renderer.domElement);
-
   const light = new THREE.PointLight(0xffffff, 1.5);
   light.position.set(10, 20, 10);
   scene.add(light);
@@ -344,11 +316,9 @@ function start3D(textArray, bg, music){
     for(let i=0; i<80; i++){
       const randomText = textArray[Math.floor(Math.random() * textArray.length)];
       const geo = new THREE.TextGeometry(randomText, { font: font, size: Math.random()*0.4+0.3, height: 0.05 });
-      
       const colors = [0xff3366, 0xff99cc, 0xffffff, 0xffcc00];
       const mat = new THREE.MeshLambertMaterial({color: colors[Math.floor(Math.random() * colors.length)]});
       const mesh = new THREE.Mesh(geo, mat);
-
       mesh.position.set((Math.random()-0.5)*40, Math.random()*20, (Math.random()-0.5)*40);
       scene.add(mesh);
       texts.push(mesh);
