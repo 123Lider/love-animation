@@ -5,144 +5,65 @@
 <title>Love 3D App</title>
 
 <style>
-body{
-  margin:0;
-  background:black;
-  color:white;
-  font-family:sans-serif;
-}
-
-/* TOP BAR */
-#topbar{
-  position:fixed;
-  top:0;
-  width:100%;
-  display:flex;
-  justify-content:flex-end;
-  padding:10px;
-  z-index:100;
-}
-
-#plus{
-  font-size:28px;
-  cursor:pointer;
-  margin-right:10px;
-}
-
-/* LIST */
-#list{
-  margin-top:60px;
-  padding:10px;
-}
-
-.card{
-  border:1px solid #444;
-  padding:10px;
-  border-radius:10px;
-  margin-bottom:10px;
-  position:relative;
-}
-
-/* THREE DOT */
-.menuBtn{
-  position:absolute;
-  right:10px;
-  top:10px;
-  cursor:pointer;
-}
-
-/* MODAL */
-#modal, #menuModal{
-  display:none;
-  position:fixed;
-  width:100%;
-  height:100%;
-  top:0;
-  left:0;
-  background:#000a;
-  z-index:200;
-}
-
-.box{
-  background:#111;
-  margin:50px auto;
-  padding:20px;
-  width:90%;
-  max-width:400px;
-  border-radius:10px;
-}
-
-input{
-  width:100%;
-  padding:10px;
-  margin:5px 0;
-  border-radius:5px;
-  border:none;
-}
-
-button{
-  padding:10px;
-  margin:5px;
-  width:100%;
-}
-
-/* LOGIN */
-#login{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-}
-
-/* RESPONSIVE */
-@media(min-width:600px){
-  .box{max-width:500px;}
-}
+body{margin:0;background:black;color:white;font-family:sans-serif;text-align:center}
+input,button{padding:10px;margin:5px;border:none;border-radius:5px}
+#app{display:none}
+#signupPage{display:none}
+#topbar{position:fixed;top:0;width:100%;display:flex;justify-content:flex-end;padding:10px}
+#plus{font-size:25px;cursor:pointer}
+.card{border:1px solid #444;margin:10px;padding:10px;border-radius:10px}
+.menuBtn{float:right;cursor:pointer}
+#modal{display:none;position:fixed;width:100%;height:100%;top:0;background:#000c}
+.box{background:#111;margin:50px auto;padding:20px;width:90%;max-width:400px}
 </style>
 </head>
 
 <body>
 
 <!-- LOGIN -->
-<div id="login">
-  <button onclick="login()">Login with Gmail</button>
+<div id="loginPage">
+  <h2>Login</h2>
+  <input id="loginEmail" placeholder="Email"><br>
+  <input id="loginPass" type="password" placeholder="Password"><br>
+  <button onclick="login()">Login</button>
+  <p onclick="showSignup()">Create Account</p>
+</div>
+
+<!-- SIGNUP -->
+<div id="signupPage">
+  <h2>Create Account</h2>
+  <input id="name" placeholder="Name"><br>
+  <input id="email" placeholder="Email"><br>
+  <input id="pass" type="password" placeholder="Password"><br>
+  <button onclick="signup()">Create</button>
+  <p onclick="showLogin()">Back</p>
 </div>
 
 <!-- APP -->
-<div id="app" style="display:none">
+<div id="app">
+  <div id="topbar">
+    <button onclick="logout()">Logout</button>
+    <div id="plus" onclick="openModal()">➕</div>
+  </div>
 
-<div id="topbar">
-  <div id="plus" onclick="openModal()">➕</div>
+  <div id="list" style="margin-top:60px"></div>
 </div>
 
-<div id="list"></div>
-
-</div>
-
-<!-- CREATE MODAL -->
+<!-- MODAL -->
 <div id="modal">
   <div class="box">
-    <input id="text1" placeholder="Text 1 (required)">
-    <input id="text2" placeholder="Text 2 (optional)">
-    <input id="text3" placeholder="Text 3 (optional)">
+    <input id="text1" placeholder="Text 1"><br>
+    <input id="text2" placeholder="Text 2"><br>
+    <input id="text3" placeholder="Text 3"><br>
 
     <label>❤️ Heart</label>
-    <input type="checkbox" id="heart">
+    <input type="checkbox" id="heart"><br>
 
-    <input type="file" id="image">
-    <input type="file" id="music">
+    <input type="file" id="image"><br>
+    <input type="file" id="music"><br>
 
     <button onclick="create()">Generate QR</button>
     <button onclick="closeModal()">Close</button>
-  </div>
-</div>
-
-<!-- MENU MODAL -->
-<div id="menuModal">
-  <div class="box">
-    <button onclick="editItem()">Edit</button>
-    <button onclick="deleteItem()">Delete</button>
-    <button onclick="closeMenu()">Close</button>
   </div>
 </div>
 
@@ -150,6 +71,9 @@ button{
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/controls/OrbitControls.js"></script>
 
 <script>
 const firebaseConfig={
@@ -161,36 +85,54 @@ const firebaseConfig={
 firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
 
-// ❌ AUTO LOGIN OFF
-firebase.auth().signOut();
+// UI SWITCH
+function showSignup(){loginPage.style.display="none";signupPage.style.display="block";}
+function showLogin(){signupPage.style.display="none";loginPage.style.display="block";}
+
+// SIGNUP
+function signup(){
+  let email=document.getElementById("email").value;
+  let pass=document.getElementById("pass").value;
+  let name=document.getElementById("name").value;
+
+  firebase.auth().createUserWithEmailAndPassword(email,pass)
+  .then(res=>{
+    return db.collection("users").doc(res.user.uid).set({name,email});
+  })
+  .then(()=>alert("Account Created"))
+  .catch(e=>alert(e.message));
+}
 
 // LOGIN
 function login(){
-  const provider=new firebase.auth.GoogleAuthProvider();
-  firebase.auth().signInWithRedirect(provider);
+  let email=document.getElementById("loginEmail").value;
+  let pass=document.getElementById("loginPass").value;
+
+  firebase.auth().signInWithEmailAndPassword(email,pass)
+  .catch(e=>alert(e.message));
 }
 
-// LOGIN STATE
+// LOGOUT
+function logout(){
+  firebase.auth().signOut();
+}
+
+// STATE
 firebase.auth().onAuthStateChanged(user=>{
   if(user){
-    loginDiv.style.display="none";
+    loginPage.style.display="none";
+    signupPage.style.display="none";
     app.style.display="block";
     load();
+  }else{
+    app.style.display="none";
+    loginPage.style.display="block";
   }
 });
 
 // MODAL
-function openModal(){ modal.style.display="block"; }
-function closeModal(){ modal.style.display="none"; }
-
-// MENU
-let currentId=null;
-
-function openMenu(id){
-  currentId=id;
-  menuModal.style.display="block";
-}
-function closeMenu(){ menuModal.style.display="none"; }
+function openModal(){modal.style.display="block";}
+function closeModal(){modal.style.display="none";}
 
 // CLOUDINARY
 async function upload(file){
@@ -213,14 +155,13 @@ async function create(){
   if(!t1) return alert("Text required");
 
   let img=await upload(image.files[0]);
-  let music=await upload(musicInput.files[0]);
+  let music=await upload(music.files[0]);
 
   let id=Date.now().toString();
 
   await db.collection("projects").doc(id).set({
     texts:[t1,t2,t3],
-    img,
-    music,
+    img,music,
     heart:heart.checked
   });
 
@@ -242,7 +183,7 @@ async function load(){
     div.className="card";
 
     div.innerHTML=`
-      <div class="menuBtn" onclick="openMenu('${id}')">⋮</div>
+      <div class="menuBtn" onclick="del('${id}')">❌</div>
       <b>${d.texts[0]}</b><br>
       <small>${link}</small><br>
       <canvas id="qr${id}"></canvas>
@@ -253,18 +194,100 @@ async function load(){
   });
 }
 
-// EDIT
-function editItem(){
-  closeMenu();
-  alert("Edit feature basic version, modify manually");
+// DELETE
+function del(id){
+  db.collection("projects").doc(id).delete().then(load);
 }
 
-// DELETE
-function deleteItem(){
-  db.collection("projects").doc(currentId).delete().then(()=>{
-    closeMenu();
-    load();
+// VIEW MODE
+const params=new URLSearchParams(location.search);
+const vid=params.get("id");
+
+if(vid){
+  document.body.innerHTML="";
+  db.collection("projects").doc(vid).get().then(doc=>{
+    start3D(doc.data());
   });
+}
+
+// 3D
+function start3D(d){
+
+  if(d.music){
+    let audio=new Audio(d.music);
+    document.body.addEventListener("click",()=>audio.play());
+  }
+
+  let scene=new THREE.Scene();
+
+  if(d.img){
+    new THREE.TextureLoader().load(d.img,tex=>scene.background=tex);
+  }
+
+  let camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,0.1,1000);
+  camera.position.set(-15,5,20);
+
+  let renderer=new THREE.WebGLRenderer({antialias:true});
+  renderer.setSize(innerWidth,innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+  let controls=new THREE.OrbitControls(camera,renderer.domElement);
+
+  let light=new THREE.PointLight(0xffffff,1);
+  light.position.set(10,10,10);
+  scene.add(light);
+
+  let texts=[],hearts=[];
+
+  new THREE.FontLoader().load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json',font=>{
+
+    d.texts.forEach(t=>{
+      if(!t) return;
+      for(let i=0;i<30;i++){
+        let geo=new THREE.TextGeometry(t,{font,size:0.3,height:0.02});
+        let mesh=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:0xff66cc}));
+        mesh.position.set((Math.random()-0.5)*30,Math.random()*20,(Math.random()-0.5)*30);
+        scene.add(mesh);
+        texts.push(mesh);
+      }
+    });
+
+    if(d.heart){
+      let shape=new THREE.Shape();
+      shape.moveTo(0,0);
+      shape.bezierCurveTo(0,3,-5,3,-5,0);
+      shape.bezierCurveTo(-5,-3,0,-5,0,-2);
+      shape.bezierCurveTo(0,-5,5,-3,5,0);
+      shape.bezierCurveTo(5,3,0,3,0,0);
+
+      for(let i=0;i<30;i++){
+        let geo=new THREE.ExtrudeGeometry(shape,{depth:0.5});
+        let mesh=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:0xff0000}));
+        mesh.scale.set(0.2,0.2,0.2);
+        mesh.position.set((Math.random()-0.5)*30,Math.random()*20,(Math.random()-0.5)*30);
+        scene.add(mesh);
+        hearts.push(mesh);
+      }
+    }
+  });
+
+  function animate(){
+    requestAnimationFrame(animate);
+
+    texts.forEach(t=>{
+      t.position.y-=0.03;
+      if(t.position.y<-15) t.position.y=15;
+    });
+
+    hearts.forEach(h=>{
+      h.position.y-=0.04;
+      if(h.position.y<-15) h.position.y=15;
+    });
+
+    controls.update();
+    renderer.render(scene,camera);
+  }
+  animate();
 }
 </script>
 
