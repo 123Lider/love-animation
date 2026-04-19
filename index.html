@@ -1,374 +1,220 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>💖 Love 3D App</title>
+<title>Love 3D App</title>
 <style>
-/* --- APP THEME & GLOBAL STYLES --- */
-:root { --primary: #ff3366; --dark: #0f0f15; --glass: rgba(255, 255, 255, 0.05); --border: rgba(255, 255, 255, 0.1); }
-body { margin: 0; background: var(--dark); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
-
-/* --- PREMIUM LOGIN PAGE UI --- */
-#loginPage { position: absolute; top: 0; left: 0; width: 100%; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: radial-gradient(circle at top, #3a1222, #0f0f15); z-index: 1000; }
-.logo-icon { font-size: 70px; animation: heartbeat 1.5s infinite; text-shadow: 0 0 30px #ff3366; margin-bottom: 10px;}
-@keyframes heartbeat { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
-#loginPage h1 { margin: 0; font-size: 36px; font-weight: 800; letter-spacing: 2px; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
-#loginPage p { color: #ffb3c6; margin-bottom: 40px; font-size: 16px; text-align: center; }
-
-/* Beautiful Google Button */
-.login-btn { 
-    background: #ffffff; color: #3c4043; border: 1px solid #dadce0; padding: 12px 24px; font-size: 16px; 
-    border-radius: 40px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: all 0.3s ease; width: 280px; font-family: 'Google Sans', arial, sans-serif;
-}
-.login-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,51,102,0.3); background: #f8f9fa; }
-.login-btn:active { transform: translateY(0); box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-.google-svg { width: 24px; height: 24px; }
-
-/* --- MAIN APP NAV & LIST --- */
-#appHeader { display: none; justify-content: space-between; align-items: center; padding: 15px 20px; background: rgba(0,0,0,0.8); border-bottom: 1px solid var(--border); backdrop-filter: blur(10px); position: fixed; width: 100%; top: 0; box-sizing: border-box; z-index: 100; }
-#userInfo { display: flex; align-items: center; gap: 10px; }
-.logout-btn { background: transparent; color: #ff4d4d; border: 1px solid #ff4d4d; padding: 6px 16px; border-radius: 20px; cursor: pointer; transition: 0.3s; font-weight: bold;}
-.logout-btn:hover { background: #ff4d4d; color: white; }
-#plus { background: var(--primary); color: white; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(255,51,102,0.4); transition: 0.3s; }
-#plus:hover { transform: scale(1.05); }
-
-#list { height: 100vh; overflow-y: auto; padding: 80px 10px 20px; display: none; box-sizing: border-box; }
-.card { background: var(--glass); border: 1px solid var(--border); margin: 15px auto; padding: 20px; border-radius: 15px; max-width: 400px; backdrop-filter: blur(10px); display: flex; flex-direction: column; align-items: center; position: relative; }
-.card-header { width: 100%; display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 18px; color: #fff;}
-.menu { cursor: pointer; font-size: 18px; color: #aaa; background: #222; padding: 5px 10px; border-radius: 10px; }
-.qr-box { margin-top: 10px; background: white; padding: 10px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); display: inline-block; }
-
-/* --- MODAL (CREATE NEW) --- */
-#modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 200; overflow-y: auto; backdrop-filter: blur(8px); }
-#modalContent { background: #1a1a24; padding: 25px; margin: 40px auto; max-width: 350px; border-radius: 20px; border: 1px solid var(--border); box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
-input, select { width: 100%; padding: 12px; margin: 8px 0; box-sizing: border-box; background: #0a0a0f; color: white; border: 1px solid #333; border-radius: 10px; font-size: 14px; outline: none;}
-input:focus, select:focus { border-color: var(--primary); }
-button.action-btn { width: 100%; padding: 14px; margin: 10px 0; background: linear-gradient(45deg, #ff3366, #ff6699); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s;}
-button.action-btn:hover { box-shadow: 0 5px 20px rgba(255,51,102,0.5); }
-button.close-btn { background: #333; color: #ccc; }
-button.close-btn:hover { background: #444; box-shadow: none; }
-label { font-size: 13px; color: #aaa; margin-top: 10px; display: block; font-weight: bold;}
-
-/* Viewer Mode */
-#viewer { position: absolute; top:0; left:0; width:100%; height:100%; display:none; }
+body{margin:0;background:black;color:white;font-family:sans-serif}
+#plus{position:fixed;top:10px;right:10px;font-size:30px;cursor:pointer}
+.card{border:1px solid #444;margin:10px;padding:10px;border-radius:10px}
+.menu{float:right;cursor:pointer}
+#modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000c}
+#modalContent{background:#111;padding:20px;margin:50px}
+input{margin:5px;padding:10px;width:90%}
+button{padding:10px;margin:5px}
 </style>
 </head>
 <body>
 
-<!-- 1. PREMIUM LOGIN PAGE -->
-<div id="loginPage">
-    <div class="logo-icon">💖</div>
-    <h1>Love 3D</h1>
-    <p>Bring your feelings to life with 3D Magic</p>
-    
-    <button class="login-btn" id="loginBtn" onclick="login()">
-        <!-- Original Google SVG Logo (No external link needed) -->
-        <svg class="google-svg" viewBox="0 0 48 48">
-            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
-            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
-            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
-            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
-        </svg>
-        <span>Continue with Google</span>
-    </button>
-</div>
-
-<!-- 2. APP HEADER -->
-<div id="appHeader">
-    <div id="userInfo">
-        <span id="userName" style="font-weight: bold; font-size: 16px;">User</span>
-        <button class="logout-btn" onclick="logout()">Logout</button>
-    </div>
-    <div id="plus" onclick="openModal()">➕ Create New</div>
-</div>
-
-<!-- 3. PROJECT LIST -->
+<div id="plus" onclick="openModal()">➕</div>
 <div id="list"></div>
 
-<!-- 4. CREATION MODAL -->
 <div id="modal">
   <div id="modalContent">
-    <h3 style="text-align: center; margin-top: 0; color: var(--primary);">✨ Magic Settings</h3>
+    <input id="text" placeholder="Write your text"><br>
     
-    <label>Animated Texts (Max 3):</label>
-    <input id="text1" placeholder="Text 1 (e.g. I Love You) *">
-    <input id="text2" placeholder="Text 2 (Optional)">
-    <input id="text3" placeholder="Text 3 (Optional)">
-    
-    <label>Choose QR Code Style:</label>
-    <select id="qrStyle">
-        <option value="style1">Classic Square</option>
-        <option value="style2">Romantic Red (Dots & Rounded)</option>
-        <option value="style3">Neon Pink (Dark Background)</option>
-    </select>
+    <input type="file" id="image">
+    <button onclick="removeImage()">Remove Image</button><br>
 
-    <label>Background Image (Optional):</label>
-    <input type="file" id="image" accept="image/*">
+    <input type="file" id="music">
+    <button onclick="removeMusic()">Remove Music</button><br>
 
-    <label>Background Music (Optional):</label>
-    <input type="file" id="music" accept="audio/*">
-
-    <button class="action-btn" onclick="create()">🚀 Generate Magic</button>
-    <button class="action-btn close-btn" onclick="closeModal()">Cancel</button>
+    <button onclick="create()">Generate QR</button>
+    <button onclick="closeModal()">Close</button>
   </div>
 </div>
 
 <div id="viewer"></div>
 
-<!-- FIREBASE (v9 Compat) -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
-<!-- QR CODE STYLING LIBRARY -->
-<script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
 <!-- THREE JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/controls/OrbitControls.js"></script>
 
 <script>
-// ⚠️ আপনার ফায়ারবেস API Key বসান
-const firebaseConfig = {
-  apiKey: "AIzaSyBvEa0kQxqD6qreUGhYwpXFLh9FQpBKtL0",
-  authDomain: "love-animation-69d0b.firebaseapp.com",
-  databaseURL: "https://love-animation-69d0b-default-rtdb.firebaseio.com",
-  projectId: "love-animation-69d0b",
-  storageBucket: "love-animation-69d0b.firebasestorage.app",
-  messagingSenderId: "161341842078",
-  appId: "1:161341842078:web:5eaedb0abefa28d307118f",
-  measurementId: "G-D46BQSJBLP"
+const firebaseConfig={
+  apiKey:"AIzaSy...",
+  authDomain:"love-animation-69d0b.firebaseapp.com",
+  projectId:"love-animation-69d0b"
 };
+
 firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const auth = firebase.auth();
-const provider = new firebase.auth.GoogleAuthProvider();
+const db=firebase.firestore();
 
-let currentUser = null;
-let editingId = null;
+let editingId=null;
+let removeImg=false;
+let removeMus=false;
 
-const params = new URLSearchParams(location.search);
-const viewId = params.get("id");
-
-// Check Auth State
-auth.onAuthStateChanged(user => {
-    currentUser = user;
-    if(viewId) return; 
-
-    if(user) {
-        document.getElementById('loginPage').style.display = 'none';
-        document.getElementById('appHeader').style.display = 'flex';
-        document.getElementById('list').style.display = 'block';
-        document.getElementById('userName').innerText = "Hi, " + user.displayName.split(" ")[0] + " 👋";
-        load();
-    } else {
-        document.getElementById('loginPage').style.display = 'flex';
-        document.getElementById('appHeader').style.display = 'none';
-        document.getElementById('list').style.display = 'none';
-    }
-});
-
-// ✅ ADVANCED LOGIN FUNCTION WITH ERROR DETECTION
-async function login() { 
-    // ১. ফাইল থেকে ডিরেক্ট ওপেন করলে গুগল লগইন কাজ করে না। তার চেক:
-    if (window.location.protocol === 'file:') {
-        alert("⚠️ Warning: Google Login does not work when opening the file directly (file://). Please host it online or run it using a Local Server (like VS Code Live Server).");
-        return;
-    }
-
-    const btn = document.getElementById('loginBtn');
-    const originalContent = btn.innerHTML;
-    btn.innerHTML = "⏳ Logging in...";
-
-    try {
-        // পপ-আপের মাধ্যমে লগইন
-        await auth.signInWithPopup(provider);
-    } catch (error) {
-        console.error("Login Error:", error);
-        
-        // কি কারণে লগইন ফেইল হলো, সেটা ইউজারকে দেখানো:
-        let errorMsg = "Login Failed!\n";
-        if(error.code === 'auth/unauthorized-domain') {
-            errorMsg += "Domain is not authorized. Please go to Firebase Console -> Authentication -> Settings -> Authorized Domains, and add your website link.";
-        } else if(error.code === 'auth/popup-closed-by-user') {
-            errorMsg += "You closed the login popup before completing.";
-        } else if(error.code === 'auth/invalid-api-key') {
-            errorMsg += "Your Firebase API Key is missing or invalid in the code.";
-        } else {
-            errorMsg += error.message;
-        }
-        
-        alert(errorMsg);
-        btn.innerHTML = originalContent; // বাটন আগের মত করে দেওয়া
-    }
+// MODAL
+function openModal(){
+  document.getElementById("modal").style.display="block";
+}
+function closeModal(){
+  document.getElementById("modal").style.display="none";
 }
 
-function logout() { auth.signOut(); }
+// REMOVE
+function removeImage(){ removeImg=true; alert("Image removed"); }
+function removeMusic(){ removeMus=true; alert("Music removed"); }
 
-function openModal() { document.getElementById("modal").style.display = "block"; }
-function closeModal() { 
-    document.getElementById("modal").style.display = "none";
-    document.getElementById("text1").value = "";
-    document.getElementById("text2").value = "";
-    document.getElementById("text3").value = "";
-    document.getElementById("image").value = "";
-    document.getElementById("music").value = "";
-    editingId = null;
-}
-
+// UPLOAD
 async function upload(file){
   if(!file) return "";
-  const f = new FormData();
+  const f=new FormData();
   f.append("file",file);
-  f.append("upload_preset","love_app"); // Cloudinary preset
-  const r = await fetch("https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/upload",{method:"POST",body:f});
-  const d = await r.json();
+  f.append("upload_preset","love_app");
+
+  const r=await fetch("https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/upload",{method:"POST",body:f});
+  const d=await r.json();
   return d.secure_url;
 }
 
+// CREATE
 async function create(){
-  const t1 = document.getElementById("text1").value;
-  const t2 = document.getElementById("text2").value;
-  const t3 = document.getElementById("text3").value;
-  const qrStyle = document.getElementById("qrStyle").value;
+  const text=document.getElementById("text").value;
+  if(!text) return alert("Text must!");
 
-  if(!t1) return alert("Text 1 is required!");
+  let img = removeImg ? "" : await upload(document.getElementById("image").files[0]);
+  let music = removeMus ? "" : await upload(document.getElementById("music").files[0]);
 
-  const btn = document.querySelector(".action-btn");
-  btn.innerHTML = "⏳ Generating...";
-  document.getElementById("modalContent").style.opacity = "0.7"; 
+  let id=editingId || Date.now().toString();
 
-  const textsArray = [t1, t2, t3].filter(t => t && t.trim() !== "");
+  await db.collection("projects").doc(id).set({
+    text, img, music
+  });
 
-  let img = await upload(document.getElementById("image").files[0]);
-  let music = await upload(document.getElementById("music").files[0]);
+  editingId=null;
+  removeImg=false;
+  removeMus=false;
 
-  let id = editingId || Date.now().toString();
-
-  let dataToSave = { texts: textsArray, userId: currentUser.uid, qrStyle: qrStyle };
-  if(img) dataToSave.img = img;
-  if(music) dataToSave.music = music;
-
-  await db.collection("projects").doc(id).set(dataToSave, { merge: true });
-
-  document.getElementById("modalContent").style.opacity = "1";
-  btn.innerHTML = "🚀 Generate Magic";
   closeModal();
   load();
 }
 
+// LOAD LIST
 async function load(){
-  const list = document.getElementById("list");
-  list.innerHTML = "";
-  const snap = await db.collection("projects").where("userId", "==", currentUser.uid).get();
+  const list=document.getElementById("list");
+  list.innerHTML="";
 
-  if(snap.empty) {
-      list.innerHTML = "<p style='text-align:center; color:#888; margin-top:100px; font-size:18px;'>No magic created yet.<br><br>Click '➕ Create New' to start.</p>";
-      return;
-  }
+  const snap=await db.collection("projects").get();
 
-  snap.forEach(doc => {
-    const d = doc.data();
-    const id = doc.id;
-    // For Vercel/Netlify hosting, it gets the correct link
-    const link = location.origin + location.pathname + "?id=" + id; 
-    const displayTexts = d.texts ? d.texts.join(" • ") : d.text;
-    
-    const div = document.createElement("div");
-    div.className = "card";
-    div.innerHTML = `
-      <div class="card-header">
-         <b>${displayTexts}</b>
-         <span class="menu" onclick="menu('${id}')">✏️ Edit / 🗑️</span>
-      </div>
-      <div class="qr-box" id="qr-${id}"></div>
-      <small style="margin-top:15px; color:#aaa; display:block; word-wrap:break-word; text-align:center;">${link}</small>
+  snap.forEach(doc=>{
+    const d=doc.data();
+    const id=doc.id;
+    const link=location.origin+location.pathname+"?id="+id;
+
+    const div=document.createElement("div");
+    div.className="card";
+
+    div.innerHTML=`
+      <span class="menu" onclick="menu('${id}','${d.text}')">⋮</span>
+      <b>${d.text}</b><br>
+      <small>${link}</small><br>
+      <canvas id="qr${id}"></canvas>
     `;
+
     list.appendChild(div);
-
-    let qrOptions = { width: 180, height: 180, data: link, image: "https://cdn-icons-png.flaticon.com/512/833/833472.png", imageOptions: { crossOrigin: "anonymous", margin: 8 } };
-    if(d.qrStyle === "style2") {
-        qrOptions.dotsOptions = { color: "#e60000", type: "rounded" };
-        qrOptions.cornersSquareOptions = { color: "#990000", type: "extra-rounded" };
-    } else if(d.qrStyle === "style3") {
-        qrOptions.backgroundOptions = { color: "#111" };
-        qrOptions.dotsOptions = { color: "#ff33cc", type: "dots" };
-        qrOptions.cornersSquareOptions = { color: "#ff0066", type: "dot" };
-    } else {
-        qrOptions.dotsOptions = { color: "#000", type: "square" };
-        qrOptions.image = ""; 
-    }
-
-    const qrCode = new QRCodeStyling(qrOptions);
-    qrCode.append(document.getElementById(`qr-${id}`));
+    QRCode.toCanvas(document.getElementById("qr"+id),link);
   });
 }
 
-function menu(id){
-  const action = prompt("Type 'edit' to update texts or 'delete' to remove:");
-  if(action === "delete"){
-      if(confirm("Delete this magic?")) db.collection("projects").doc(id).delete().then(load);
-  } else if(action === "edit"){
-      editingId = id;
-      openModal();
+// MENU
+function menu(id,text){
+  const action=prompt("edit / delete");
+
+  if(action=="delete"){
+    db.collection("projects").doc(id).delete().then(load);
+  }
+
+  if(action=="edit"){
+    editingId=id;
+    openModal();
+    document.getElementById("text").value=text;
   }
 }
 
-if(viewId){
-  document.getElementById("loginPage").style.display = "none";
-  document.body.style.overflow = "hidden";
-  document.getElementById("viewer").style.display = "block";
+// VIEW MODE (3D)
+const params=new URLSearchParams(location.search);
+const id=params.get("id");
 
-  db.collection("projects").doc(viewId).get().then(doc => {
-    if(doc.exists) {
-        const d = doc.data();
-        start3D(d.texts || [d.text], d.img, d.music);
-    } else {
-        alert("Animation not found or deleted!");
-    }
+if(id){
+  document.getElementById("plus").style.display="none";
+  document.getElementById("list").style.display="none";
+
+  db.collection("projects").doc(id).get().then(doc=>{
+    const d=doc.data();
+
+    start3D(d.text, d.img, d.music);
   });
+}else{
+  load();
 }
 
-function start3D(textArray, bg, music){
+// 🎥 3D FUNCTION
+function start3D(text, bg, music){
+
   if(music){
-    const audio = document.createElement("audio");
-    audio.src = music;
-    audio.loop = true;
-    document.body.addEventListener('click', () => audio.play(), {once:true});
+    const audio=document.createElement("audio");
+    audio.src=music;
+    audio.autoplay=true;
+    audio.loop=true;
+    document.body.appendChild(audio);
   }
 
-  const scene = new THREE.Scene();
+  const scene=new THREE.Scene();
+
   if(bg){
-    new THREE.TextureLoader().load(bg, tex => { scene.background = tex; });
-  } else {
-      scene.background = new THREE.Color(0x0a0a0f); 
+    const loader=new THREE.TextureLoader();
+    loader.load(bg, tex=>{
+      scene.background=tex;
+    });
   }
 
-  const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
-  camera.position.set(-15, 5, 20);
+  const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,0.1,1000);
+  camera.position.set(-15,5,20);
 
-  const renderer = new THREE.WebGLRenderer({antialias:true});
-  renderer.setSize(innerWidth, innerHeight);
-  document.getElementById("viewer").appendChild(renderer.domElement);
+  const renderer=new THREE.WebGLRenderer({antialias:true});
+  renderer.setSize(innerWidth,innerHeight);
+  document.body.appendChild(renderer.domElement);
 
-  const controls = new THREE.OrbitControls(camera, renderer.domElement);
-  const light = new THREE.PointLight(0xffffff, 1.5);
-  light.position.set(10, 20, 10);
+  const controls=new THREE.OrbitControls(camera,renderer.domElement);
+
+  const light=new THREE.PointLight(0xffffff,1);
+  light.position.set(10,10,10);
   scene.add(light);
-  scene.add(new THREE.AmbientLight(0x606060));
 
-  const loaderF = new THREE.FontLoader();
-  let texts = [];
+  const loaderF=new THREE.FontLoader();
 
-  loaderF.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', font => {
-    for(let i=0; i<90; i++){
-      const randomText = textArray[Math.floor(Math.random() * textArray.length)];
-      const geo = new THREE.TextGeometry(randomText, { font: font, size: Math.random()*0.5+0.3, height: 0.05 });
-      const colors = [0xff3366, 0xff6699, 0xffffff, 0xffcc00];
-      const mat = new THREE.MeshLambertMaterial({color: colors[Math.floor(Math.random() * colors.length)]});
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.set((Math.random()-0.5)*40, Math.random()*25, (Math.random()-0.5)*40);
+  let texts=[];
+
+  loaderF.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', font=>{
+    for(let i=0;i<80;i++){
+      const geo=new THREE.TextGeometry(text,{
+        font:font,
+        size:Math.random()*0.4+0.2,
+        height:0.02
+      });
+
+      const mat=new THREE.MeshBasicMaterial({color:0xff66cc});
+      const mesh=new THREE.Mesh(geo,mat);
+
+      mesh.position.x=(Math.random()-0.5)*40;
+      mesh.position.y=Math.random()*20;
+      mesh.position.z=(Math.random()-0.5)*40;
+
       scene.add(mesh);
       texts.push(mesh);
     }
@@ -376,14 +222,14 @@ function start3D(textArray, bg, music){
 
   function animate(){
     requestAnimationFrame(animate);
-    texts.forEach(t => {
-      t.position.y -= 0.06;
-      t.rotation.y += 0.01;
-      t.rotation.z += 0.005;
-      if(t.position.y < -15) t.position.y = 20;
+
+    texts.forEach(t=>{
+      t.position.y-=0.03;
+      if(t.position.y<-15) t.position.y=15;
     });
+
     controls.update();
-    renderer.render(scene, camera);
+    renderer.render(scene,camera);
   }
   animate();
 }
