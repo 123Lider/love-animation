@@ -3,45 +3,153 @@
 <head>
 <meta charset="UTF-8">
 <title>Love 3D App</title>
+
 <style>
-body{margin:0;background:black;color:white;font-family:sans-serif}
-#plus{position:fixed;top:10px;right:10px;font-size:30px;cursor:pointer}
-.card{border:1px solid #444;margin:10px;padding:10px;border-radius:10px}
-.menu{float:right;cursor:pointer}
-#modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000c}
-#modalContent{background:#111;padding:20px;margin:50px}
-input{margin:5px;padding:10px;width:90%}
-button{padding:10px;margin:5px}
+body{
+  margin:0;
+  background:black;
+  color:white;
+  font-family:sans-serif;
+}
+
+/* TOP BAR */
+#topbar{
+  position:fixed;
+  top:0;
+  width:100%;
+  display:flex;
+  justify-content:flex-end;
+  padding:10px;
+  z-index:100;
+}
+
+#plus{
+  font-size:28px;
+  cursor:pointer;
+  margin-right:10px;
+}
+
+/* LIST */
+#list{
+  margin-top:60px;
+  padding:10px;
+}
+
+.card{
+  border:1px solid #444;
+  padding:10px;
+  border-radius:10px;
+  margin-bottom:10px;
+  position:relative;
+}
+
+/* THREE DOT */
+.menuBtn{
+  position:absolute;
+  right:10px;
+  top:10px;
+  cursor:pointer;
+}
+
+/* MODAL */
+#modal, #menuModal{
+  display:none;
+  position:fixed;
+  width:100%;
+  height:100%;
+  top:0;
+  left:0;
+  background:#000a;
+  z-index:200;
+}
+
+.box{
+  background:#111;
+  margin:50px auto;
+  padding:20px;
+  width:90%;
+  max-width:400px;
+  border-radius:10px;
+}
+
+input{
+  width:100%;
+  padding:10px;
+  margin:5px 0;
+  border-radius:5px;
+  border:none;
+}
+
+button{
+  padding:10px;
+  margin:5px;
+  width:100%;
+}
+
+/* LOGIN */
+#login{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+/* RESPONSIVE */
+@media(min-width:600px){
+  .box{max-width:500px;}
+}
 </style>
 </head>
+
 <body>
 
-<div id="plus" onclick="openModal()">➕</div>
+<!-- LOGIN -->
+<div id="login">
+  <button onclick="login()">Login with Gmail</button>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+
+<div id="topbar">
+  <div id="plus" onclick="openModal()">➕</div>
+</div>
+
 <div id="list"></div>
 
+</div>
+
+<!-- CREATE MODAL -->
 <div id="modal">
-  <div id="modalContent">
-    <input id="text1" placeholder="Text 1 (required)"><br>
-    <input id="text2" placeholder="Text 2 (optional)"><br>
-    <input id="text3" placeholder="Text 3 (optional)"><br>
+  <div class="box">
+    <input id="text1" placeholder="Text 1 (required)">
+    <input id="text2" placeholder="Text 2 (optional)">
+    <input id="text3" placeholder="Text 3 (optional)">
 
-    <label>❤️ Heart Effect</label>
-    <input type="checkbox" id="heartToggle"><br>
+    <label>❤️ Heart</label>
+    <input type="checkbox" id="heart">
 
-    <input type="file" id="image"><br>
-    <input type="file" id="music"><br>
+    <input type="file" id="image">
+    <input type="file" id="music">
 
     <button onclick="create()">Generate QR</button>
     <button onclick="closeModal()">Close</button>
   </div>
 </div>
 
+<!-- MENU MODAL -->
+<div id="menuModal">
+  <div class="box">
+    <button onclick="editItem()">Edit</button>
+    <button onclick="deleteItem()">Delete</button>
+    <button onclick="closeMenu()">Close</button>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/controls/OrbitControls.js"></script>
 
 <script>
 const firebaseConfig={
@@ -49,12 +157,42 @@ const firebaseConfig={
   authDomain:"love-animation-69d0b.firebaseapp.com",
   projectId:"love-animation-69d0b"
 };
+
 firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
 
+// ❌ AUTO LOGIN OFF
+firebase.auth().signOut();
+
+// LOGIN
+function login(){
+  const provider=new firebase.auth.GoogleAuthProvider();
+  firebase.auth().signInWithRedirect(provider);
+}
+
+// LOGIN STATE
+firebase.auth().onAuthStateChanged(user=>{
+  if(user){
+    loginDiv.style.display="none";
+    app.style.display="block";
+    load();
+  }
+});
+
+// MODAL
 function openModal(){ modal.style.display="block"; }
 function closeModal(){ modal.style.display="none"; }
 
+// MENU
+let currentId=null;
+
+function openMenu(id){
+  currentId=id;
+  menuModal.style.display="block";
+}
+function closeMenu(){ menuModal.style.display="none"; }
+
+// CLOUDINARY
 async function upload(file){
   if(!file) return "";
   let f=new FormData();
@@ -66,11 +204,13 @@ async function upload(file){
   return d.secure_url;
 }
 
+// CREATE
 async function create(){
-  let text1=text1Input.value;
-  let text2=text2Input.value;
-  let text3=text3Input.value;
-  if(!text1) return alert("Text1 required");
+  let t1=text1.value;
+  let t2=text2.value;
+  let t3=text3.value;
+
+  if(!t1) return alert("Text required");
 
   let img=await upload(image.files[0]);
   let music=await upload(musicInput.files[0]);
@@ -78,15 +218,17 @@ async function create(){
   let id=Date.now().toString();
 
   await db.collection("projects").doc(id).set({
-    texts:[text1,text2,text3],
-    img, music,
-    heart:heartToggle.checked
+    texts:[t1,t2,t3],
+    img,
+    music,
+    heart:heart.checked
   });
 
-  let link=location.origin+location.pathname+"?id="+id;
-  alert(link);
+  closeModal();
+  load();
 }
 
+// LOAD
 async function load(){
   list.innerHTML="";
   let snap=await db.collection("projects").get();
@@ -98,116 +240,31 @@ async function load(){
 
     let div=document.createElement("div");
     div.className="card";
+
     div.innerHTML=`
+      <div class="menuBtn" onclick="openMenu('${id}')">⋮</div>
       <b>${d.texts[0]}</b><br>
       <small>${link}</small><br>
       <canvas id="qr${id}"></canvas>
     `;
+
     list.appendChild(div);
     QRCode.toCanvas(document.getElementById("qr"+id),link);
   });
 }
 
-const params=new URLSearchParams(location.search);
-const id=params.get("id");
-
-if(id){
-  plus.style.display="none";
-  list.style.display="none";
-
-  db.collection("projects").doc(id).get().then(doc=>{
-    let d=doc.data();
-    start3D(d);
-  });
-}else{
-  load();
+// EDIT
+function editItem(){
+  closeMenu();
+  alert("Edit feature basic version, modify manually");
 }
 
-function start3D(data){
-
-  // 🎵 music fix
-  if(data.music){
-    let audio=new Audio(data.music);
-    document.body.addEventListener("click",()=>audio.play());
-  }
-
-  let scene=new THREE.Scene();
-
-  if(data.img){
-    new THREE.TextureLoader().load(data.img,tex=>scene.background=tex);
-  }
-
-  let camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,0.1,1000);
-  camera.position.set(-15,5,20);
-
-  let renderer=new THREE.WebGLRenderer({antialias:true});
-  renderer.setSize(innerWidth,innerHeight);
-  document.body.appendChild(renderer.domElement);
-
-  let controls=new THREE.OrbitControls(camera,renderer.domElement);
-
-  let light=new THREE.PointLight(0xffffff,1);
-  light.position.set(10,10,10);
-  scene.add(light);
-
-  let texts=[];
-  let hearts=[];
-
-  new THREE.FontLoader().load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json',font=>{
-
-    data.texts.forEach(t=>{
-      if(!t) return;
-
-      for(let i=0;i<30;i++){
-        let geo=new THREE.TextGeometry(t,{font,size:0.3,height:0.02});
-        let mesh=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:0xff66cc}));
-
-        mesh.position.set((Math.random()-0.5)*30,Math.random()*20,(Math.random()-0.5)*30);
-        scene.add(mesh);
-        texts.push(mesh);
-      }
-    });
-
-    // ❤️ heart optional
-    if(data.heart){
-      let shape=new THREE.Shape();
-      shape.moveTo(0,0);
-      shape.bezierCurveTo(0,3,-5,3,-5,0);
-      shape.bezierCurveTo(-5,-3,0,-5,0,-2);
-      shape.bezierCurveTo(0,-5,5,-3,5,0);
-      shape.bezierCurveTo(5,3,0,3,0,0);
-
-      for(let i=0;i<30;i++){
-        let geo=new THREE.ExtrudeGeometry(shape,{depth:0.5});
-        let mesh=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:0xff0000}));
-
-        mesh.scale.set(0.2,0.2,0.2);
-        mesh.position.set((Math.random()-0.5)*30,Math.random()*20,(Math.random()-0.5)*30);
-
-        scene.add(mesh);
-        hearts.push(mesh);
-      }
-    }
-
+// DELETE
+function deleteItem(){
+  db.collection("projects").doc(currentId).delete().then(()=>{
+    closeMenu();
+    load();
   });
-
-  function animate(){
-    requestAnimationFrame(animate);
-
-    texts.forEach(t=>{
-      t.position.y-=0.03;
-      if(t.position.y<-15) t.position.y=15;
-    });
-
-    hearts.forEach(h=>{
-      h.position.y-=0.04;
-      if(h.position.y<-15) h.position.y=15;
-    });
-
-    controls.update();
-    renderer.render(scene,camera);
-  }
-  animate();
 }
 </script>
 
