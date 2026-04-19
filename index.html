@@ -4,17 +4,67 @@
 <meta charset="UTF-8">
 <title>Love 3D App</title>
 
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
 body{margin:0;background:black;color:white;font-family:sans-serif;text-align:center}
-input,button{padding:10px;margin:5px;border:none;border-radius:5px}
-#app{display:none}
-#signupPage{display:none}
-#topbar{position:fixed;top:0;width:100%;display:flex;justify-content:flex-end;padding:10px}
-#plus{font-size:25px;cursor:pointer}
-.card{border:1px solid #444;margin:10px;padding:10px;border-radius:10px}
-.menuBtn{float:right;cursor:pointer}
-#modal{display:none;position:fixed;width:100%;height:100%;top:0;background:#000c}
-.box{background:#111;margin:50px auto;padding:20px;width:90%;max-width:400px}
+
+input,button{
+  width:100%;
+  max-width:350px;
+  padding:12px;
+  margin:6px 0;
+  border-radius:6px;
+  border:none;
+}
+
+#loginPage,#signupPage{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  padding:20px;
+}
+
+#app{display:none;padding-top:60px}
+
+#topbar{
+  position:fixed;
+  top:0;
+  width:100%;
+  display:flex;
+  justify-content:flex-end;
+  padding:10px;
+}
+
+#plus{font-size:28px;cursor:pointer;margin-left:10px}
+
+.card{
+  border:1px solid #444;
+  margin:10px;
+  padding:10px;
+  border-radius:10px;
+}
+
+#modal{
+  display:none;
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:#000c;
+}
+
+.box{
+  background:#111;
+  margin:40px auto;
+  padding:20px;
+  width:90%;
+  max-width:400px;
+  border-radius:10px;
+}
 </style>
 </head>
 
@@ -23,18 +73,18 @@ input,button{padding:10px;margin:5px;border:none;border-radius:5px}
 <!-- LOGIN -->
 <div id="loginPage">
   <h2>Login</h2>
-  <input id="loginEmail" placeholder="Email"><br>
-  <input id="loginPass" type="password" placeholder="Password"><br>
+  <input id="loginEmail" placeholder="Email">
+  <input id="loginPass" type="password" placeholder="Password">
   <button onclick="login()">Login</button>
   <p onclick="showSignup()">Create Account</p>
 </div>
 
 <!-- SIGNUP -->
-<div id="signupPage">
+<div id="signupPage" style="display:none">
   <h2>Create Account</h2>
-  <input id="name" placeholder="Name"><br>
-  <input id="email" placeholder="Email"><br>
-  <input id="pass" type="password" placeholder="Password"><br>
+  <input id="name" placeholder="Name">
+  <input id="email" placeholder="Email">
+  <input id="pass" type="password" placeholder="Password">
   <button onclick="signup()">Create</button>
   <p onclick="showLogin()">Back</p>
 </div>
@@ -46,21 +96,21 @@ input,button{padding:10px;margin:5px;border:none;border-radius:5px}
     <div id="plus" onclick="openModal()">➕</div>
   </div>
 
-  <div id="list" style="margin-top:60px"></div>
+  <div id="list"></div>
 </div>
 
 <!-- MODAL -->
 <div id="modal">
   <div class="box">
-    <input id="text1" placeholder="Text 1"><br>
-    <input id="text2" placeholder="Text 2"><br>
-    <input id="text3" placeholder="Text 3"><br>
+    <input id="text1" placeholder="Text 1 (required)">
+    <input id="text2" placeholder="Text 2">
+    <input id="text3" placeholder="Text 3">
 
     <label>❤️ Heart</label>
     <input type="checkbox" id="heart"><br>
 
-    <input type="file" id="image"><br>
-    <input type="file" id="music"><br>
+    <input type="file" id="image">
+    <input type="file" id="music">
 
     <button onclick="create()">Generate QR</button>
     <button onclick="closeModal()">Close</button>
@@ -86,7 +136,6 @@ const firebaseConfig = {
   appId: "1:161341842078:web:5eaedb0abefa28d307118f",
   measurementId: "G-D46BQSJBLP"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
 
@@ -118,9 +167,7 @@ function login(){
 }
 
 // LOGOUT
-function logout(){
-  firebase.auth().signOut();
-}
+function logout(){firebase.auth().signOut();}
 
 // STATE
 firebase.auth().onAuthStateChanged(user=>{
@@ -151,25 +198,29 @@ async function upload(file){
   return d.secure_url;
 }
 
-// CREATE
+// CREATE (FIXED)
 async function create(){
-  let t1=text1.value;
-  let t2=text2.value;
-  let t3=text3.value;
+  let t1=document.getElementById("text1").value;
+  let t2=document.getElementById("text2").value;
+  let t3=document.getElementById("text3").value;
 
   if(!t1) return alert("Text required");
 
-  let img=await upload(image.files[0]);
-  let music=await upload(music.files[0]);
+  let imgFile=document.getElementById("image").files[0];
+  let musicFile=document.getElementById("music").files[0];
+
+  let img=await upload(imgFile);
+  let music=await upload(musicFile);
 
   let id=Date.now().toString();
 
   await db.collection("projects").doc(id).set({
     texts:[t1,t2,t3],
     img,music,
-    heart:heart.checked
+    heart:document.getElementById("heart").checked
   });
 
+  alert("✅ QR Generated!");
   closeModal();
   load();
 }
@@ -188,10 +239,10 @@ async function load(){
     div.className="card";
 
     div.innerHTML=`
-      <div class="menuBtn" onclick="del('${id}')">❌</div>
       <b>${d.texts[0]}</b><br>
       <small>${link}</small><br>
       <canvas id="qr${id}"></canvas>
+      <button onclick="del('${id}')">Delete</button>
     `;
 
     list.appendChild(div);
