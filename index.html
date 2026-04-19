@@ -2,348 +2,74 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Love 3D App</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<title>Love Animation</title>
 <style>
-body{margin:0;background:black;color:white;font-family:sans-serif;text-align:center}
-
-input,button{
-  width:100%;
-  max-width:350px;
-  padding:12px;
-  margin:6px 0;
-  border-radius:6px;
-  border:none;
-}
-
-#loginPage,#signupPage{
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-  padding:20px;
-}
-
-#app{display:none;padding-top:60px}
-
-#topbar{
-  position:fixed;
-  top:0;
-  width:100%;
-  display:flex;
-  justify-content:flex-end;
-  padding:10px;
-}
-
-#plus{font-size:28px;cursor:pointer;margin-left:10px}
-
-.card{
-  border:1px solid #444;
-  margin:10px;
-  padding:10px;
-  border-radius:10px;
-}
-
-#modal{
-  display:none;
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:#000c;
-}
-
-.box{
-  background:#111;
-  margin:40px auto;
-  padding:20px;
-  width:90%;
-  max-width:400px;
-  border-radius:10px;
-}
+body{margin:0;overflow:hidden;background:black}
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
-<div id="loginPage">
-  <h2>Login</h2>
-  <input id="loginEmail" placeholder="Email">
-  <input id="loginPass" type="password" placeholder="Password">
-  <button onclick="login()">Login</button>
-  <p onclick="showSignup()">Create Account</p>
-</div>
-
-<!-- SIGNUP -->
-<div id="signupPage" style="display:none">
-  <h2>Create Account</h2>
-  <input id="name" placeholder="Name">
-  <input id="email" placeholder="Email">
-  <input id="pass" type="password" placeholder="Password">
-  <button onclick="signup()">Create</button>
-  <p onclick="showLogin()">Back</p>
-</div>
-
-<!-- APP -->
-<div id="app">
-  <div id="topbar">
-    <button onclick="logout()">Logout</button>
-    <div id="plus" onclick="openModal()">➕</div>
-  </div>
-
-  <div id="list"></div>
-</div>
-
-<!-- MODAL -->
-<div id="modal">
-  <div class="box">
-    <input id="text1" placeholder="Text 1 (required)">
-    <input id="text2" placeholder="Text 2">
-    <input id="text3" placeholder="Text 3">
-
-    <label>❤️ Heart</label>
-    <input type="checkbox" id="heart"><br>
-
-    <input type="file" id="image">
-    <input type="file" id="music">
-
-    <button onclick="create()">Generate QR</button>
-    <button onclick="closeModal()">Close</button>
-  </div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+<audio id="music" loop>
+<source src="https://cdn.pixabay.com/audio/2023/03/27/audio_5f9c6bb5c3.mp3">
+</audio>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/controls/OrbitControls.js"></script>
 
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyBvEa0kQxqD6qreUGhYwpXFLh9FQpBKtL0",
-  authDomain: "love-animation-69d0b.firebaseapp.com",
-  databaseURL: "https://love-animation-69d0b-default-rtdb.firebaseio.com",
-  projectId: "love-animation-69d0b",
-  storageBucket: "love-animation-69d0b.firebasestorage.app",
-  messagingSenderId: "161341842078",
-  appId: "1:161341842078:web:5eaedb0abefa28d307118f",
-  measurementId: "G-D46BQSJBLP"
-};
-firebase.initializeApp(firebaseConfig);
-const db=firebase.firestore();
+const text = new URLSearchParams(location.search).get("text") || "I love you";
 
-// UI SWITCH
-function showSignup(){loginPage.style.display="none";signupPage.style.display="block";}
-function showLogin(){signupPage.style.display="none";loginPage.style.display="block";}
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75,innerWidth/innerHeight,0.1,1000);
+camera.position.z=20;
 
-// SIGNUP
-function signup(){
-  let email=document.getElementById("email").value;
-  let pass=document.getElementById("pass").value;
-  let name=document.getElementById("name").value;
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(innerWidth,innerHeight);
+document.body.appendChild(renderer.domElement);
 
-  firebase.auth().createUserWithEmailAndPassword(email,pass)
-  .then(res=>{
-    return db.collection("users").doc(res.user.uid).set({name,email});
-  })
-  .then(()=>alert("Account Created"))
-  .catch(e=>alert(e.message));
-}
+const light = new THREE.PointLight(0xffffff,1);
+light.position.set(10,10,10);
+scene.add(light);
 
-// LOGIN
-function login(){
-  let email=document.getElementById("loginEmail").value;
-  let pass=document.getElementById("loginPass").value;
+const loader = new THREE.FontLoader();
+let meshes=[];
 
-  firebase.auth().signInWithEmailAndPassword(email,pass)
-  .catch(e=>alert(e.message));
-}
+loader.load("https://threejs.org/examples/fonts/helvetiker_regular.typeface.json",font=>{
 
-// LOGOUT
-function logout(){firebase.auth().signOut();}
+ for(let i=0;i<50;i++){
+   const geo=new THREE.TextGeometry(text,{
+     font:font,size:0.5,height:0.05
+   });
 
-// STATE
-firebase.auth().onAuthStateChanged(user=>{
-  if(user){
-    loginPage.style.display="none";
-    signupPage.style.display="none";
-    app.style.display="block";
-    load();
-  }else{
-    app.style.display="none";
-    loginPage.style.display="block";
-  }
+   const mat=new THREE.MeshBasicMaterial({color:0xff69b4});
+   const mesh=new THREE.Mesh(geo,mat);
+
+   mesh.position.x=(Math.random()-0.5)*20;
+   mesh.position.y=Math.random()*15;
+
+   scene.add(mesh);
+   meshes.push(mesh);
+ }
 });
 
-// MODAL
-function openModal(){modal.style.display="block";}
-function closeModal(){modal.style.display="none";}
+function animate(){
+ requestAnimationFrame(animate);
 
-// CLOUDINARY
-async function upload(file){
-  if(!file) return "";
-  let f=new FormData();
-  f.append("file",file);
-  f.append("upload_preset","love_app");
+ meshes.forEach(m=>{
+   m.position.y-=0.05;
+   if(m.position.y<-10) m.position.y=10;
+ });
 
-  let r=await fetch("https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/upload",{method:"POST",body:f});
-  let d=await r.json();
-  return d.secure_url;
+ renderer.render(scene,camera);
 }
+animate();
 
-// CREATE (FIXED)
-async function create(){
-  let t1=document.getElementById("text1").value;
-  let t2=document.getElementById("text2").value;
-  let t3=document.getElementById("text3").value;
+document.body.onclick=()=>music.play();
 
-  if(!t1) return alert("Text required");
-
-  let imgFile=document.getElementById("image").files[0];
-  let musicFile=document.getElementById("music").files[0];
-
-  let img=await upload(imgFile);
-  let music=await upload(musicFile);
-
-  let id=Date.now().toString();
-
-  await db.collection("projects").doc(id).set({
-    texts:[t1,t2,t3],
-    img,music,
-    heart:document.getElementById("heart").checked
-  });
-
-  alert("✅ QR Generated!");
-  closeModal();
-  load();
-}
-
-// LOAD
-async function load(){
-  list.innerHTML="";
-  let snap=await db.collection("projects").get();
-
-  snap.forEach(doc=>{
-    let d=doc.data();
-    let id=doc.id;
-    let link=location.origin+location.pathname+"?id="+id;
-
-    let div=document.createElement("div");
-    div.className="card";
-
-    div.innerHTML=`
-      <b>${d.texts[0]}</b><br>
-      <small>${link}</small><br>
-      <canvas id="qr${id}"></canvas>
-      <button onclick="del('${id}')">Delete</button>
-    `;
-
-    list.appendChild(div);
-    QRCode.toCanvas(document.getElementById("qr"+id),link);
-  });
-}
-
-// DELETE
-function del(id){
-  db.collection("projects").doc(id).delete().then(load);
-}
-
-// VIEW MODE
-const params=new URLSearchParams(location.search);
-const vid=params.get("id");
-
-if(vid){
-  document.body.innerHTML="";
-  db.collection("projects").doc(vid).get().then(doc=>{
-    start3D(doc.data());
-  });
-}
-
-// 3D
-function start3D(d){
-
-  if(d.music){
-    let audio=new Audio(d.music);
-    document.body.addEventListener("click",()=>audio.play());
-  }
-
-  let scene=new THREE.Scene();
-
-  if(d.img){
-    new THREE.TextureLoader().load(d.img,tex=>scene.background=tex);
-  }
-
-  let camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,0.1,1000);
-  camera.position.set(-15,5,20);
-
-  let renderer=new THREE.WebGLRenderer({antialias:true});
-  renderer.setSize(innerWidth,innerHeight);
-  document.body.appendChild(renderer.domElement);
-
-  let controls=new THREE.OrbitControls(camera,renderer.domElement);
-
-  let light=new THREE.PointLight(0xffffff,1);
-  light.position.set(10,10,10);
-  scene.add(light);
-
-  let texts=[],hearts=[];
-
-  new THREE.FontLoader().load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json',font=>{
-
-    d.texts.forEach(t=>{
-      if(!t) return;
-      for(let i=0;i<30;i++){
-        let geo=new THREE.TextGeometry(t,{font,size:0.3,height:0.02});
-        let mesh=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:0xff66cc}));
-        mesh.position.set((Math.random()-0.5)*30,Math.random()*20,(Math.random()-0.5)*30);
-        scene.add(mesh);
-        texts.push(mesh);
-      }
-    });
-
-    if(d.heart){
-      let shape=new THREE.Shape();
-      shape.moveTo(0,0);
-      shape.bezierCurveTo(0,3,-5,3,-5,0);
-      shape.bezierCurveTo(-5,-3,0,-5,0,-2);
-      shape.bezierCurveTo(0,-5,5,-3,5,0);
-      shape.bezierCurveTo(5,3,0,3,0,0);
-
-      for(let i=0;i<30;i++){
-        let geo=new THREE.ExtrudeGeometry(shape,{depth:0.5});
-        let mesh=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:0xff0000}));
-        mesh.scale.set(0.2,0.2,0.2);
-        mesh.position.set((Math.random()-0.5)*30,Math.random()*20,(Math.random()-0.5)*30);
-        scene.add(mesh);
-        hearts.push(mesh);
-      }
-    }
-  });
-
-  function animate(){
-    requestAnimationFrame(animate);
-
-    texts.forEach(t=>{
-      t.position.y-=0.03;
-      if(t.position.y<-15) t.position.y=15;
-    });
-
-    hearts.forEach(h=>{
-      h.position.y-=0.04;
-      if(h.position.y<-15) h.position.y=15;
-    });
-
-    controls.update();
-    renderer.render(scene,camera);
-  }
-  animate();
+window.onresize=()=>{
+ camera.aspect=innerWidth/innerHeight;
+ camera.updateProjectionMatrix();
+ renderer.setSize(innerWidth,innerHeight);
 }
 </script>
 
