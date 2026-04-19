@@ -21,26 +21,25 @@ button{padding:10px;margin:5px}
 
 <div id="modal">
   <div id="modalContent">
-    <input id="text" placeholder="Write your text"><br>
-    
-    <input type="file" id="image">
-    <button onclick="removeImage()">Remove Image</button><br>
+    <input id="text1" placeholder="Text 1 (required)"><br>
+    <input id="text2" placeholder="Text 2 (optional)"><br>
+    <input id="text3" placeholder="Text 3 (optional)"><br>
 
-    <input type="file" id="music">
-    <button onclick="removeMusic()">Remove Music</button><br>
+    <label>❤️ Heart Effect</label>
+    <input type="checkbox" id="heartToggle"><br>
+
+    <input type="file" id="image"><br>
+    <input type="file" id="music"><br>
 
     <button onclick="create()">Generate QR</button>
     <button onclick="closeModal()">Close</button>
   </div>
 </div>
 
-<div id="viewer"></div>
-
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
-<!-- THREE JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/controls/OrbitControls.js"></script>
 
@@ -50,174 +49,146 @@ const firebaseConfig={
   authDomain:"love-animation-69d0b.firebaseapp.com",
   projectId:"love-animation-69d0b"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
 
-let editingId=null;
-let removeImg=false;
-let removeMus=false;
+function openModal(){ modal.style.display="block"; }
+function closeModal(){ modal.style.display="none"; }
 
-// MODAL
-function openModal(){
-  document.getElementById("modal").style.display="block";
-}
-function closeModal(){
-  document.getElementById("modal").style.display="none";
-}
-
-// REMOVE
-function removeImage(){ removeImg=true; alert("Image removed"); }
-function removeMusic(){ removeMus=true; alert("Music removed"); }
-
-// UPLOAD
 async function upload(file){
   if(!file) return "";
-  const f=new FormData();
+  let f=new FormData();
   f.append("file",file);
   f.append("upload_preset","love_app");
 
-  const r=await fetch("https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/upload",{method:"POST",body:f});
-  const d=await r.json();
+  let r=await fetch("https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/upload",{method:"POST",body:f});
+  let d=await r.json();
   return d.secure_url;
 }
 
-// CREATE
 async function create(){
-  const text=document.getElementById("text").value;
-  if(!text) return alert("Text must!");
+  let text1=text1Input.value;
+  let text2=text2Input.value;
+  let text3=text3Input.value;
+  if(!text1) return alert("Text1 required");
 
-  let img = removeImg ? "" : await upload(document.getElementById("image").files[0]);
-  let music = removeMus ? "" : await upload(document.getElementById("music").files[0]);
+  let img=await upload(image.files[0]);
+  let music=await upload(musicInput.files[0]);
 
-  let id=editingId || Date.now().toString();
+  let id=Date.now().toString();
 
   await db.collection("projects").doc(id).set({
-    text, img, music
+    texts:[text1,text2,text3],
+    img, music,
+    heart:heartToggle.checked
   });
 
-  editingId=null;
-  removeImg=false;
-  removeMus=false;
-
-  closeModal();
-  load();
+  let link=location.origin+location.pathname+"?id="+id;
+  alert(link);
 }
 
-// LOAD LIST
 async function load(){
-  const list=document.getElementById("list");
   list.innerHTML="";
-
-  const snap=await db.collection("projects").get();
+  let snap=await db.collection("projects").get();
 
   snap.forEach(doc=>{
-    const d=doc.data();
-    const id=doc.id;
-    const link=location.origin+location.pathname+"?id="+id;
+    let d=doc.data();
+    let id=doc.id;
+    let link=location.origin+location.pathname+"?id="+id;
 
-    const div=document.createElement("div");
+    let div=document.createElement("div");
     div.className="card";
-
     div.innerHTML=`
-      <span class="menu" onclick="menu('${id}','${d.text}')">⋮</span>
-      <b>${d.text}</b><br>
+      <b>${d.texts[0]}</b><br>
       <small>${link}</small><br>
       <canvas id="qr${id}"></canvas>
     `;
-
     list.appendChild(div);
     QRCode.toCanvas(document.getElementById("qr"+id),link);
   });
 }
 
-// MENU
-function menu(id,text){
-  const action=prompt("edit / delete");
-
-  if(action=="delete"){
-    db.collection("projects").doc(id).delete().then(load);
-  }
-
-  if(action=="edit"){
-    editingId=id;
-    openModal();
-    document.getElementById("text").value=text;
-  }
-}
-
-// VIEW MODE (3D)
 const params=new URLSearchParams(location.search);
 const id=params.get("id");
 
 if(id){
-  document.getElementById("plus").style.display="none";
-  document.getElementById("list").style.display="none";
+  plus.style.display="none";
+  list.style.display="none";
 
   db.collection("projects").doc(id).get().then(doc=>{
-    const d=doc.data();
-
-    start3D(d.text, d.img, d.music);
+    let d=doc.data();
+    start3D(d);
   });
 }else{
   load();
 }
 
-// 🎥 3D FUNCTION
-function start3D(text, bg, music){
+function start3D(data){
 
-  if(music){
-    const audio=document.createElement("audio");
-    audio.src=music;
-    audio.autoplay=true;
-    audio.loop=true;
-    document.body.appendChild(audio);
+  // 🎵 music fix
+  if(data.music){
+    let audio=new Audio(data.music);
+    document.body.addEventListener("click",()=>audio.play());
   }
 
-  const scene=new THREE.Scene();
+  let scene=new THREE.Scene();
 
-  if(bg){
-    const loader=new THREE.TextureLoader();
-    loader.load(bg, tex=>{
-      scene.background=tex;
-    });
+  if(data.img){
+    new THREE.TextureLoader().load(data.img,tex=>scene.background=tex);
   }
 
-  const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,0.1,1000);
+  let camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,0.1,1000);
   camera.position.set(-15,5,20);
 
-  const renderer=new THREE.WebGLRenderer({antialias:true});
+  let renderer=new THREE.WebGLRenderer({antialias:true});
   renderer.setSize(innerWidth,innerHeight);
   document.body.appendChild(renderer.domElement);
 
-  const controls=new THREE.OrbitControls(camera,renderer.domElement);
+  let controls=new THREE.OrbitControls(camera,renderer.domElement);
 
-  const light=new THREE.PointLight(0xffffff,1);
+  let light=new THREE.PointLight(0xffffff,1);
   light.position.set(10,10,10);
   scene.add(light);
 
-  const loaderF=new THREE.FontLoader();
-
   let texts=[];
+  let hearts=[];
 
-  loaderF.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', font=>{
-    for(let i=0;i<80;i++){
-      const geo=new THREE.TextGeometry(text,{
-        font:font,
-        size:Math.random()*0.4+0.2,
-        height:0.02
-      });
+  new THREE.FontLoader().load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json',font=>{
 
-      const mat=new THREE.MeshBasicMaterial({color:0xff66cc});
-      const mesh=new THREE.Mesh(geo,mat);
+    data.texts.forEach(t=>{
+      if(!t) return;
 
-      mesh.position.x=(Math.random()-0.5)*40;
-      mesh.position.y=Math.random()*20;
-      mesh.position.z=(Math.random()-0.5)*40;
+      for(let i=0;i<30;i++){
+        let geo=new THREE.TextGeometry(t,{font,size:0.3,height:0.02});
+        let mesh=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:0xff66cc}));
 
-      scene.add(mesh);
-      texts.push(mesh);
+        mesh.position.set((Math.random()-0.5)*30,Math.random()*20,(Math.random()-0.5)*30);
+        scene.add(mesh);
+        texts.push(mesh);
+      }
+    });
+
+    // ❤️ heart optional
+    if(data.heart){
+      let shape=new THREE.Shape();
+      shape.moveTo(0,0);
+      shape.bezierCurveTo(0,3,-5,3,-5,0);
+      shape.bezierCurveTo(-5,-3,0,-5,0,-2);
+      shape.bezierCurveTo(0,-5,5,-3,5,0);
+      shape.bezierCurveTo(5,3,0,3,0,0);
+
+      for(let i=0;i<30;i++){
+        let geo=new THREE.ExtrudeGeometry(shape,{depth:0.5});
+        let mesh=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:0xff0000}));
+
+        mesh.scale.set(0.2,0.2,0.2);
+        mesh.position.set((Math.random()-0.5)*30,Math.random()*20,(Math.random()-0.5)*30);
+
+        scene.add(mesh);
+        hearts.push(mesh);
+      }
     }
+
   });
 
   function animate(){
@@ -228,11 +199,17 @@ function start3D(text, bg, music){
       if(t.position.y<-15) t.position.y=15;
     });
 
+    hearts.forEach(h=>{
+      h.position.y-=0.04;
+      if(h.position.y<-15) h.position.y=15;
+    });
+
     controls.update();
     renderer.render(scene,camera);
   }
   animate();
 }
 </script>
+
 </body>
 </html>
